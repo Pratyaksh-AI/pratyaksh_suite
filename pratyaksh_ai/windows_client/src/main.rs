@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // Hide console in release
+
 use eframe::egui;
 use rusqlite::{params, Connection};
 use chrono::Local;
@@ -6,19 +8,20 @@ use sha2::{Sha256, Digest};
 use std::collections::HashMap;
 
 // ============================================================================
-//  1. ASSETS: ICONS (SVG)
+//  1. ASSETS: CORPORATE ICONS (Minimalist SVG)
 // ============================================================================
-const ICON_CITY: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FF5252"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>"##.as_bytes();
-const ICON_USER: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#448AFF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>"##.as_bytes();
-const ICON_DOC: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFD740"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>"##.as_bytes();
-const ICON_LOCK: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#69F0AE"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>"##.as_bytes();
-const ICON_CHART: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#E040FB"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>"##.as_bytes();
-const ICON_BRAIN: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>"##.as_bytes();
+const ICON_CITY: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>"##.as_bytes();
+const ICON_USER: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>"##.as_bytes();
+const ICON_DOC: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>"##.as_bytes();
+const ICON_LOCK: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>"##.as_bytes();
+const ICON_CHART: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>"##.as_bytes();
+const ICON_BRAIN: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>"##.as_bytes();
 
 // ============================================================================
-//  2. REAL DATA STRUCTURES (DB & LOGIC)
+//  2. REAL DATA STRUCTURES (Clean & Professional)
 // ============================================================================
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct Client {
     id: i32,
@@ -28,6 +31,7 @@ struct Client {
     flags: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct EvidenceLog {
     id: i32,
@@ -51,34 +55,25 @@ struct PratyakshApp {
     db: Arc<Mutex<Connection>>,
     current_page: Page,
     
-    // Module 1: City Risk
+    // Module Data
     selected_city: String,
     risk_data: HashMap<String, (i32, String)>,
-
-    // Module 2: Client Integrity
     clients: Vec<Client>,
     new_client_name: String,
     new_client_city: String,
-
-    // Module 4: Evidence Locker
     evidence_logs: Vec<EvidenceLog>,
     evidence_action: String,
     evidence_client_select: String,
-
-    // Module 5: Billing
     billing_service: String,
     billing_city: String,
     billing_estimate: f64,
-
-    // Module 6: Regulator Notes
     regulator_notes: String,
-    
     status_msg: String,
 }
 
 impl PratyakshApp {
     fn init_db() -> Connection {
-        let conn = Connection::open("pratyaksh_mega.db").expect("Failed to open DB");
+        let conn = Connection::open("pratyaksh_corp.db").expect("Failed to open DB");
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS clients (
                 id INTEGER PRIMARY KEY,
@@ -105,7 +100,7 @@ impl PratyakshApp {
 
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
-        setup_enterprise_theme(&cc.egui_ctx);
+        setup_corporate_theme(&cc.egui_ctx);
         
         let mut app = Self {
             db: Arc::new(Mutex::new(Self::init_db())),
@@ -122,9 +117,10 @@ impl PratyakshApp {
             billing_city: "Mumbai".to_string(),
             billing_estimate: 0.0,
             regulator_notes: String::new(),
-            status_msg: "System Online".to_string(),
+            status_msg: "System Connected".to_string(),
         };
         
+        // Seed Data
         app.risk_data.insert("Pune".into(), (72, "High".into()));
         app.risk_data.insert("Mumbai".into(), (55, "Medium".into()));
         app.risk_data.insert("Bangalore".into(), (65, "High".into()));
@@ -138,13 +134,11 @@ impl PratyakshApp {
     fn refresh_data(&mut self) {
         let conn = self.db.lock().unwrap();
         
-        // Load Clients
-        let mut stmt = conn.prepare("SELECT id, name, city, trust_score, flags FROM clients").unwrap();
+        let mut stmt = conn.prepare("SELECT id, name, city, trust_score, flags FROM clients ORDER BY id DESC").unwrap();
         self.clients = stmt.query_map([], |row| Ok(Client {
             id: row.get(0)?, name: row.get(1)?, city: row.get(2)?, trust_score: row.get(3)?, flags: row.get(4)?
         })).unwrap().map(|c| c.unwrap()).collect();
 
-        // Load Evidence
         let mut stmt = conn.prepare("SELECT id, client_name, action, timestamp, hash FROM evidence ORDER BY id DESC").unwrap();
         self.evidence_logs = stmt.query_map([], |row| Ok(EvidenceLog {
             id: row.get(0)?, client_name: row.get(1)?, action: row.get(2)?, timestamp: row.get(3)?, hash: row.get(4)?
@@ -166,6 +160,7 @@ impl PratyakshApp {
         self.new_client_name.clear();
         drop(conn);
         self.refresh_data();
+        self.status_msg = "Client Record Created.".to_string();
     }
 
     fn lock_evidence(&mut self) {
@@ -182,6 +177,7 @@ impl PratyakshApp {
         ).unwrap();
         drop(conn);
         self.refresh_data();
+        self.status_msg = "Evidence Block Sealed.".to_string();
     }
 
     fn calculate_fee(&mut self) {
@@ -205,18 +201,35 @@ impl PratyakshApp {
 }
 
 // ============================================================================
-//  3. UI RENDERER
+//  3. UI RENDERER (CORPORATE LAYOUT)
 // ============================================================================
 
 impl eframe::App for PratyakshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         
-        egui::SidePanel::left("nav").exact_width(250.0).show(ctx, |ui| {
+        // 1. STATUS BAR (Bottom)
+        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+            ui.add_space(2.0);
+            ui.horizontal(|ui| {
+                ui.label(egui::RichText::new("●").color(egui::Color32::GREEN).size(10.0));
+                ui.label(egui::RichText::new(&self.status_msg).size(12.0));
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    ui.label("v5.1 Enterprise | PratyakshAI CS Suite");
+                });
+            });
+            ui.add_space(2.0);
+        });
+
+        // 2. SIDEBAR (Navigation)
+        egui::SidePanel::left("nav").exact_width(240.0).resizable(false).show(ctx, |ui| {
             ui.add_space(20.0);
-            ui.heading(egui::RichText::new("PRATYAKSH AI").size(24.0).strong().color(egui::Color32::from_rgb(0, 200, 255)));
-            ui.label(egui::RichText::new("CS Suite Mega Edition").size(12.0).color(egui::Color32::GRAY));
+            ui.vertical_centered(|ui| {
+                 ui.heading(egui::RichText::new("PRATYAKSH").size(20.0).strong().color(egui::Color32::WHITE));
+                 ui.label(egui::RichText::new("INTELLIGENCE SUITE").size(10.0).tracking(2.0).color(egui::Color32::from_rgb(100, 200, 255)));
+            });
             ui.add_space(30.0);
 
+            // Menu Items
             let btns = [
                 ("City Risk", Page::CityRisk, ICON_CITY),
                 ("Client Integrity", Page::ClientIntegrity, ICON_USER),
@@ -227,23 +240,28 @@ impl eframe::App for PratyakshApp {
             ];
 
             for (label, page, icon) in btns {
-                if nav_btn(ui, label, icon, self.current_page == page).clicked() {
+                let is_active = self.current_page == page;
+                if nav_btn(ui, label, icon, is_active).clicked() {
                     self.current_page = page;
                 }
-                ui.add_space(5.0);
+                ui.add_space(4.0);
             }
         });
 
+        // 3. MAIN CONTENT
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.add_space(10.0);
-            match self.current_page {
-                Page::CityRisk => self.render_city_risk(ui),
-                Page::ClientIntegrity => self.render_clients(ui),
-                Page::LegalDocs => self.render_legal(ui),
-                Page::EvidenceLocker => self.render_evidence(ui),
-                Page::FirmOps => self.render_ops(ui),
-                Page::SmartTools => self.render_smart(ui),
-            }
+            egui::Frame::none()
+                .inner_margin(20.0)
+                .show(ui, |ui| {
+                    match self.current_page {
+                        Page::CityRisk => self.render_city_risk(ui),
+                        Page::ClientIntegrity => self.render_clients(ui),
+                        Page::LegalDocs => self.render_legal(ui),
+                        Page::EvidenceLocker => self.render_evidence(ui),
+                        Page::FirmOps => self.render_ops(ui),
+                        Page::SmartTools => self.render_smart(ui),
+                    }
+                });
         });
     }
 }
@@ -254,7 +272,7 @@ impl PratyakshApp {
         ui.separator();
         
         ui.horizontal(|ui| {
-            ui.label("Select City:");
+            ui.label("Target City:");
             egui::ComboBox::from_id_source("city_combo")
                 .selected_text(&self.selected_city)
                 .show_ui(ui, |ui| {
@@ -268,53 +286,80 @@ impl PratyakshApp {
         ui.add_space(20.0);
 
         if let Some((risk, strictness)) = self.risk_data.get(&self.selected_city) {
-            let color = if *risk > 70 { egui::Color32::RED } else { egui::Color32::YELLOW };
+            let color = if *risk > 70 { egui::Color32::from_rgb(255, 80, 80) } else { egui::Color32::from_rgb(255, 200, 50) };
             
-            egui::Frame::group(ui.style()).fill(egui::Color32::from_rgb(30, 20, 20)).inner_margin(20.0).show(ui, |ui| {
-                ui.label(egui::RichText::new("NOTICE RISK SCORE").size(14.0).color(egui::Color32::GRAY));
-                ui.heading(egui::RichText::new(format!("{}%", risk)).size(40.0).color(color).strong());
-                ui.label(format!("AO Strictness: {}", strictness));
-                ui.label("Based on last 24 months of officer behavior.");
-            });
+            // Stats Card
+            egui::Frame::group(ui.style())
+                .fill(egui::Color32::from_rgb(30, 35, 40))
+                .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(60, 70, 80)))
+                .inner_margin(20.0)
+                .show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                         ui.vertical(|ui| {
+                            ui.label(egui::RichText::new("NOTICE RISK SCORE").size(12.0).color(egui::Color32::GRAY));
+                            ui.heading(egui::RichText::new(format!("{}%", risk)).size(32.0).color(color).strong());
+                         });
+                         ui.add_space(40.0);
+                         ui.vertical(|ui| {
+                            ui.label(egui::RichText::new("AO STRICTNESS").size(12.0).color(egui::Color32::GRAY));
+                            ui.heading(egui::RichText::new(strictness).size(24.0).color(egui::Color32::WHITE));
+                         });
+                    });
+                    ui.add_space(10.0);
+                    ui.small("Analysis based on 24-month officer behavior pattern.");
+                });
         }
     }
 
     fn render_clients(&mut self, ui: &mut egui::Ui) {
         ui.heading("Client Integrity Analyzer");
-        ui.label("Trust Scores derived from banking & GST pattern mismatch.");
         ui.separator();
 
+        // Toolbar
         ui.horizontal(|ui| {
+            ui.label("Name:");
             ui.text_edit_singleline(&mut self.new_client_name).request_focus();
+            ui.label("City:");
             ui.text_edit_singleline(&mut self.new_client_city);
-            if ui.button("Add Client").clicked() { self.add_client(); }
+            if ui.button("Add Record").clicked() { self.add_client(); }
         });
 
         ui.add_space(20.0);
         
-        egui::Grid::new("clients").striped(true).spacing([40.0, 10.0]).show(ui, |ui| {
-            ui.strong("Name"); ui.strong("City"); ui.strong("Trust Score"); ui.strong("Flags"); ui.end_row();
-            
-            for client in &self.clients {
-                ui.label(&client.name);
-                ui.label(&client.city);
-                ui.colored_label(
-                    if client.trust_score < 70 { egui::Color32::RED } else { egui::Color32::GREEN },
-                    format!("{}/100", client.trust_score)
-                );
-                ui.label(&client.flags);
-                ui.end_row();
-            }
+        // Data Grid
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::Grid::new("clients")
+                .striped(true)
+                .min_col_width(100.0)
+                .spacing([20.0, 10.0])
+                .show(ui, |ui| {
+                    ui.colored_label(egui::Color32::GRAY, "CLIENT NAME");
+                    ui.colored_label(egui::Color32::GRAY, "CITY");
+                    ui.colored_label(egui::Color32::GRAY, "TRUST SCORE");
+                    ui.colored_label(egui::Color32::GRAY, "FLAGS");
+                    ui.end_row();
+                    
+                    for client in &self.clients {
+                        ui.label(egui::RichText::new(&client.name).strong());
+                        ui.label(&client.city);
+                        
+                        let color = if client.trust_score < 70 { egui::Color32::RED } else { egui::Color32::GREEN };
+                        ui.colored_label(color, format!("{}/100", client.trust_score));
+                        
+                        ui.monospace(&client.flags);
+                        ui.end_row();
+                    }
+                });
         });
     }
 
     fn render_evidence(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Evidence Locker (Legal Protection)");
-        ui.label("Cryptographically locked audit trail for client advice.");
+        ui.heading("Evidence Locker");
+        ui.label("Immutable audit trail for professional advice.");
         ui.separator();
 
-        ui.horizontal(|ui| {
-            ui.label("Client:");
+        ui.grid("ev_form", |ui| {
+            ui.label("Select Client:");
             egui::ComboBox::from_id_source("ev_client")
                 .selected_text(&self.evidence_client_select)
                 .show_ui(ui, |ui| {
@@ -322,28 +367,44 @@ impl PratyakshApp {
                         ui.selectable_value(&mut self.evidence_client_select, c.name.clone(), &c.name);
                     }
                 });
+            ui.end_row();
+            
+            ui.label("Advice Note:");
+            ui.text_edit_singleline(&mut self.evidence_action);
+            ui.end_row();
         });
         
-        ui.label("Action/Advice Given:");
-        ui.text_edit_singleline(&mut self.evidence_action);
-
-        if ui.button("🔒 LOCK EVIDENCE & GENERATE HASH").clicked() {
+        ui.add_space(10.0);
+        
+        let btn = egui::Button::new("🔒 SEAL EVIDENCE BLOCK")
+            .fill(egui::Color32::from_rgb(0, 120, 200))
+            .min_size(egui::vec2(200.0, 30.0));
+            
+        if ui.add(btn).clicked() {
             self.lock_evidence();
         }
 
-        ui.add_space(20.0);
-        ui.label("Locked Logs:");
+        ui.add_space(30.0);
+        ui.label(egui::RichText::new("BLOCKCHAIN LOG").size(12.0).strong());
         
         egui::ScrollArea::vertical().show(ui, |ui| {
             for log in &self.evidence_logs {
-                egui::Frame::group(ui.style()).stroke(egui::Stroke::new(1.0, egui::Color32::GREEN)).inner_margin(10.0).show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.strong(&log.client_name);
-                        ui.label(format!(" at {}", log.timestamp));
+                egui::Frame::group(ui.style())
+                    .fill(egui::Color32::from_rgb(20, 25, 30))
+                    .stroke(egui::Stroke::new(1.0, egui::Color32::from_rgb(40, 50, 60)))
+                    .inner_margin(10.0)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.label(egui::RichText::new(&log.timestamp).color(egui::Color32::GRAY));
+                            ui.strong(&log.client_name);
+                        });
+                        ui.label(&log.action);
+                        ui.add_space(5.0);
+                        ui.horizontal(|ui| {
+                            ui.label(egui::RichText::new("HASH:").size(10.0).color(egui::Color32::DARK_GRAY));
+                            ui.monospace(egui::RichText::new(&log.hash).size(10.0).color(egui::Color32::from_rgb(0, 255, 100)));
+                        });
                     });
-                    ui.label(format!("Action: {}", log.action));
-                    ui.monospace(format!("SHA256: {}", log.hash));
-                });
                 ui.add_space(5.0);
             }
         });
@@ -353,9 +414,8 @@ impl PratyakshApp {
         ui.heading("Local Billing Optimizer");
         ui.separator();
 
-        // FIXED: Using egui::Grid::new().show()
-        egui::Grid::new("billing").spacing([20.0, 10.0]).show(ui, |ui| {
-            ui.label("Service:");
+        egui::Grid::new("billing").spacing([20.0, 15.0]).show(ui, |ui| {
+            ui.label("Service Type:");
             egui::ComboBox::from_id_source("serv_combo").selected_text(&self.billing_service).show_ui(ui, |ui| {
                 ui.selectable_value(&mut self.billing_service, "GST Annual Return".into(), "GST Annual Return");
                 ui.selectable_value(&mut self.billing_service, "Company Incorporation".into(), "Company Incorporation");
@@ -363,7 +423,7 @@ impl PratyakshApp {
             });
             ui.end_row();
 
-            ui.label("City:");
+            ui.label("Region:");
             egui::ComboBox::from_id_source("city_bill_combo").selected_text(&self.billing_city).show_ui(ui, |ui| {
                 ui.selectable_value(&mut self.billing_city, "Mumbai".into(), "Mumbai");
                 ui.selectable_value(&mut self.billing_city, "Pune".into(), "Pune");
@@ -372,48 +432,74 @@ impl PratyakshApp {
             ui.end_row();
         });
 
-        ui.add_space(10.0);
+        ui.add_space(20.0);
 
-        if ui.button("Calculate Suggested Fee").clicked() {
+        if ui.button("Calculate Market Rate").clicked() {
             self.calculate_fee();
         }
 
         if self.billing_estimate > 0.0 {
-            ui.add_space(10.0);
-            ui.heading(format!("Suggested Fee: ₹ {:.0}", self.billing_estimate));
-            ui.label("Includes City Risk Premium & Market Variance");
+            ui.add_space(20.0);
+            egui::Frame::group(ui.style())
+                .fill(egui::Color32::from_rgb(30, 40, 30))
+                .stroke(egui::Stroke::new(1.0, egui::Color32::GREEN))
+                .inner_margin(20.0)
+                .show(ui, |ui| {
+                    ui.label("RECOMMENDED FEE");
+                    ui.heading(egui::RichText::new(format!("₹ {:.0}", self.billing_estimate)).size(30.0).color(egui::Color32::WHITE));
+                    ui.small("Includes 22% Risk Premium for this region.");
+                });
         }
     }
 
-    fn render_legal(&mut self, ui: &mut egui::Ui) { ui.heading("Legal & Board Resolutions"); ui.label("Coming in v5.1"); }
+    fn render_legal(&mut self, ui: &mut egui::Ui) { 
+        ui.heading("Legal & Board Resolutions"); 
+        ui.label("Module pending activation license."); 
+    }
+    
     fn render_smart(&mut self, ui: &mut egui::Ui) { 
         ui.heading("Regulator Notebook");
+        ui.add_space(10.0);
         ui.text_edit_multiline(&mut self.regulator_notes);
     }
 }
 
+// ============================================================================
+//  4. THEME ENGINE
+// ============================================================================
+
 fn nav_btn(ui: &mut egui::Ui, text: &str, icon: &'static [u8], active: bool) -> egui::Response {
-    let bg = if active { egui::Color32::from_rgb(0, 60, 120) } else { egui::Color32::TRANSPARENT };
-    egui::Frame::none().fill(bg).rounding(5.0).inner_margin(8.0).show(ui, |ui| {
+    let bg = if active { egui::Color32::from_rgb(0, 90, 160) } else { egui::Color32::TRANSPARENT };
+    let fg = if active { egui::Color32::WHITE } else { egui::Color32::from_rgb(180, 180, 190) };
+    
+    egui::Frame::none().fill(bg).rounding(4.0).inner_margin(8.0).show(ui, |ui| {
         ui.set_width(ui.available_width());
         ui.horizontal(|ui| {
-            ui.add(egui::Image::from_bytes(format!("bytes://{}", text), icon).max_width(20.0));
-            ui.add_space(10.0);
-            ui.label(egui::RichText::new(text).color(egui::Color32::WHITE).size(14.0));
+            ui.add(egui::Image::from_bytes(format!("bytes://{}", text), icon).max_width(18.0).tint(fg));
+            ui.add_space(12.0);
+            ui.label(egui::RichText::new(text).color(fg).size(14.0));
         });
     }).response.interact(egui::Sense::click())
 }
 
-fn setup_enterprise_theme(ctx: &egui::Context) {
+fn setup_corporate_theme(ctx: &egui::Context) {
     let mut visuals = egui::Visuals::dark();
-    visuals.window_fill = egui::Color32::from_rgb(10, 14, 20);
-    visuals.panel_fill = egui::Color32::from_rgb(15, 20, 28);
+    visuals.window_fill = egui::Color32::from_rgb(18, 22, 28); // Deep Corporate Grey
+    visuals.panel_fill = egui::Color32::from_rgb(25, 30, 36);  // Sidebar Grey
+    
+    visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(30, 35, 40);
+    visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(200, 200, 200));
+    
+    visuals.selection.bg_fill = egui::Color32::from_rgb(0, 100, 200); // Corporate Blue
+    
     ctx.set_visuals(visuals);
 }
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("PratyakshAI Mega Suite"),
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([1280.0, 850.0])
+            .with_title("PratyakshAI CS Suite (Enterprise)"),
         ..Default::default()
     };
     eframe::run_native("PratyakshAI", options, Box::new(|cc| Box::new(PratyakshApp::new(cc))))
