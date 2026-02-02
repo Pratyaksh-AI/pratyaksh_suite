@@ -132,7 +132,7 @@ impl eframe::App for PratyakshApp {
             ui.add_space(20.0);
             
             ui.vertical_centered(|ui| {
-                let logo = egui::Image::new("file://logo.png").max_width(120.0);
+                let logo = egui::Image::new("file://logo.jpg").max_width(120.0);
                 ui.add(logo); 
                 ui.add_space(10.0);
                 ui.heading(egui::RichText::new("PRATYAKSH AI").size(22.0).strong().color(egui::Color32::from_rgb(0, 191, 255)));
