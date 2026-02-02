@@ -225,7 +225,8 @@ impl eframe::App for PratyakshApp {
             ui.add_space(20.0);
             ui.vertical_centered(|ui| {
                  ui.heading(egui::RichText::new("PRATYAKSH").size(20.0).strong().color(egui::Color32::WHITE));
-                 ui.label(egui::RichText::new("INTELLIGENCE SUITE").size(10.0).tracking(2.0).color(egui::Color32::from_rgb(100, 200, 255)));
+                 // Removed .tracking() method call here to fix compilation error
+                 ui.label(egui::RichText::new("INTELLIGENCE SUITE").size(10.0).color(egui::Color32::from_rgb(100, 200, 255)));
             });
             ui.add_space(30.0);
 
@@ -358,7 +359,8 @@ impl PratyakshApp {
         ui.label("Immutable audit trail for professional advice.");
         ui.separator();
 
-        ui.grid("ev_form", |ui| {
+        // FIXED: Using egui::Grid::new() instead of ui.grid() shorthand
+        egui::Grid::new("ev_form").spacing([10.0, 10.0]).show(ui, |ui| {
             ui.label("Select Client:");
             egui::ComboBox::from_id_source("ev_client")
                 .selected_text(&self.evidence_client_select)
