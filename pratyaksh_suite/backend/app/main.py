@@ -2,17 +2,21 @@ from fastapi import FastAPI
 from datetime import date
 from app.modules.compliance.logic import ComplianceCalculator
 
-# --- PHASE 2 IMPORTS (Moved to Top) ---
+# --- IMPORTS ---
 from app.modules.governance import routes as governance_routes
+from app.modules.client_risk import routes as client_risk_routes
+from app.modules.regional import routes as regional_routes
 
-app = FastAPI(title="PratyakshAI CS Suite")
+app = FastAPI(title="PratyakshAI CS Suite (Full MVP)")
 
-# --- REGISTER ROUTERS ---
+# --- REGISTER ALL ROUTERS ---
 app.include_router(governance_routes.router, prefix="/api/v1/governance", tags=["Governance"])
+app.include_router(client_risk_routes.router, prefix="/api/v1/risk", tags=["Client Risk"])
+app.include_router(regional_routes.router, prefix="/api/v1/regional", tags=["Regional Intelligence"])
 
 @app.get("/")
 def health_check():
-    return {"status": "PratyakshAI Core is Running"}
+    return {"status": "PratyakshAI Core is Running (Phases 1-3 Active)"}
 
 @app.get("/api/v1/compliance/calculate")
 def get_compliance_risk(fy_end: str, filing_type: str):
