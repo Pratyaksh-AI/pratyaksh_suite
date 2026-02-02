@@ -1,10 +1,21 @@
 [package]
 name = "pratyaksh_desktop"
-version = "0.1.0"
+version = "3.0.0"
 edition = "2021"
 
 [dependencies]
+# The UI Toolkit
 eframe = "0.26"
-reqwest = { version = "0.11", features = ["blocking", "json"] }
+
+# Graphics Loaders (Crucial for SVG)
+egui_extras = { version = "0.26", features = ["all_loaders"] }
+image = { version = "0.24", features = ["jpeg", "png"] }
+
+# Async & Networking
+reqwest = { version = "0.11", features = ["json", "blocking"] } 
+tokio = { version = "1", features = ["full"] }
+
+# Data & Config
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+confy = "0.5"
