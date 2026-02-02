@@ -1,23 +1,23 @@
 [package]
 name = "pratyaksh_desktop"
-version = "4.0.0"
+version = "5.0.0"
 edition = "2021"
 
 [dependencies]
-# GUI & Graphics
 eframe = "0.26"
-# FIX: Added "datepicker" to features list below
-egui_extras = { version = "0.26", features = ["all_loaders", "datepicker"] }
+egui_extras = { version = "0.26", features = ["all_loaders"] }
 image = { version = "0.24", features = ["jpeg", "png"] }
 
-# Real Data Storage (SQLite)
+# Real Data Storage
 rusqlite = { version = "0.31", features = ["bundled"] }
 
-# Real Time Logic
+# Logic & Math
 chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8" # For deterministic risk modelling
+sha2 = "0.10" # For Evidence Locker hashing
+hex = "0.4"
 
-# Utils
+# Utilities
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 confy = "0.5"
-reqwest = { version = "0.11", features = ["blocking", "json"] }
