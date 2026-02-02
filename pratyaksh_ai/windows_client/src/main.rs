@@ -5,8 +5,8 @@ use std::thread;
 use std::time::Duration;
 
 // ============================================================================
-//  1. EMBEDDED ASSETS (FIXED SYNTAX)
-//  We use r##" ... "## to safely include special characters like # inside strings.
+//  1. EMBEDDED ASSETS (SVG ICONS)
+//  We use raw string literals r##"..."## to handle the SVG syntax safely.
 // ============================================================================
 
 const ICON_LOGO: &[u8] = r##"
@@ -82,15 +82,9 @@ struct PratyakshApp {
 
 impl PratyakshApp {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // 1. INSTALL SVG LOADERS
         egui_extras::install_image_loaders(&cc.egui_ctx);
-
-        // 2. LOAD CONFIG
         let config: AppConfig = confy::load("pratyaksh_ai", "config").unwrap_or_default();
-        
-        // 3. APPLY THEME
         setup_futuristic_theme(&cc.egui_ctx);
-        
         let (tx, rx) = channel();
 
         Self {
@@ -272,7 +266,8 @@ impl PratyakshApp {
     }
 }
 
-fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &[u8], active: bool) -> egui::Response {
+// FIX: CHANGED TO ACCEPT 'static LIFETIME
+fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &'static [u8], active: bool) -> egui::Response {
     let bg = if active { egui::Color32::from_rgb(30, 35, 50) } else { egui::Color32::TRANSPARENT };
     let fg = if active { egui::Color32::WHITE } else { egui::Color32::GRAY };
     
