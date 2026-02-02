@@ -1,7 +1,0 @@
-dependencies:
-  flutter:
-    sdk: flutter
-  dio: ^5.0.0          # For API calls
-  geolocator: ^10.0.0  # For GPS Evidence
-  camera: ^0.10.5      # For Photo Evidence
-  intl: ^0.18.0        # Date formatting
