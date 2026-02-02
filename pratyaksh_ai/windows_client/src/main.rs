@@ -5,33 +5,33 @@ use std::thread;
 use std::time::Duration;
 
 // ============================================================================
-//  1. EMBEDDED ASSETS (SVG ICONS)
-//  We store these as raw bytes so the EXE is standalone.
+//  1. EMBEDDED ASSETS (FIXED SYNTAX)
+//  We use r##" ... "## to safely include special characters like # inside strings.
 // ============================================================================
 
-const ICON_LOGO: &[u8] = br#"
+const ICON_LOGO: &[u8] = r##"
 <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M2 17L12 22L22 17" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 <path d="M2 12L12 17L22 12" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
-"#;
+"##.as_bytes();
 
-const ICON_DASHBOARD: &[u8] = br#"
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+const ICON_DASHBOARD: &[u8] = r##"
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
 <rect x="3" y="3" width="7" height="9"></rect>
 <rect x="14" y="3" width="7" height="5"></rect>
 <rect x="14" y="12" width="7" height="9"></rect>
 <rect x="3" y="16" width="7" height="5"></rect>
 </svg>
-"#;
+"##.as_bytes();
 
-const ICON_SETTINGS: &[u8] = br#"
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+const ICON_SETTINGS: &[u8] = r##"
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
 <circle cx="12" cy="12" r="3"></circle>
 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
 </svg>
-"#;
+"##.as_bytes();
 
 // ============================================================================
 //  2. DATA & CONFIG
@@ -71,22 +71,18 @@ impl Default for AppConfig {
 struct PratyakshApp {
     config: AppConfig,
     current_page: Page,
-    
-    // UI Logic
     fy_end: String,
     form_type: String,
     result: Option<ComplianceRisk>,
     is_loading: bool,
     error_msg: Option<String>,
-    
-    // Concurrency
     rx: Receiver<Result<ComplianceRisk, String>>,
     tx: Sender<Result<ComplianceRisk, String>>,
 }
 
 impl PratyakshApp {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        // 1. INSTALL SVG LOADERS (Required for better graphics)
+        // 1. INSTALL SVG LOADERS
         egui_extras::install_image_loaders(&cc.egui_ctx);
 
         // 2. LOAD CONFIG
@@ -124,7 +120,6 @@ impl PratyakshApp {
 
 impl eframe::App for PratyakshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Handle Async Messages
         if let Ok(res) = self.rx.try_recv() {
             self.is_loading = false;
             match res {
@@ -133,32 +128,21 @@ impl eframe::App for PratyakshApp {
             }
         }
 
-        // --- SIDEBAR ---
         egui::SidePanel::left("sidebar")
             .exact_width(240.0)
             .resizable(false)
             .show(ctx, |ui| {
                 ui.add_space(30.0);
-                
-                // LOGO SECTION
                 ui.horizontal(|ui| {
-                    ui.add(egui::Image::new(egui::include_image!("../assets/logo_placeholder.svg")).max_width(40.0)); 
-                    // Note: Since we can't easily create files, we use the raw bytes helper below instead
-                    // For this environment, we render the SVG bytes directly:
-                    ui.add(
-                        egui::Image::from_bytes("bytes://logo.svg", ICON_LOGO)
-                            .fit_to_original_size(0.8)
-                    );
-                    
+                    ui.add(egui::Image::from_bytes("bytes://logo.svg", ICON_LOGO).max_width(40.0));
                     ui.vertical(|ui| {
                         ui.heading(egui::RichText::new("PRATYAKSH").size(18.0).strong().color(egui::Color32::WHITE));
-                        ui.label(egui::RichText::new("AI SUITE").size(10.0).tracking(2.0).color(egui::Color32::from_rgb(0, 191, 255)));
+                        ui.label(egui::RichText::new("AI SUITE").size(10.0).color(egui::Color32::from_rgb(0, 191, 255)));
                     });
                 });
 
                 ui.add_space(50.0);
 
-                // NAVIGATION
                 if nav_btn(ui, "Dashboard", ICON_DASHBOARD, self.current_page == Page::Dashboard).clicked() {
                     self.current_page = Page::Dashboard;
                 }
@@ -166,18 +150,8 @@ impl eframe::App for PratyakshApp {
                 if nav_btn(ui, "Configuration", ICON_SETTINGS, self.current_page == Page::Settings).clicked() {
                     self.current_page = Page::Settings;
                 }
-
-                // FOOTER
-                ui.with_layout(egui::Layout::bottom_up(egui::Align::Start), |ui| {
-                    ui.add_space(20.0);
-                    ui.horizontal(|ui| {
-                        ui.label(egui::RichText::new("● Online").color(egui::Color32::GREEN).size(10.0));
-                        ui.label(egui::RichText::new("v3.0 Enterprise").color(egui::Color32::GRAY).size(10.0));
-                    });
-                });
             });
 
-        // --- MAIN CONTENT ---
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.current_page {
                 Page::Dashboard => self.render_dashboard(ui),
@@ -194,7 +168,6 @@ impl PratyakshApp {
         ui.label(egui::RichText::new("Real-time risk assessment engine").color(egui::Color32::GRAY));
         ui.add_space(30.0);
 
-        // CARD CONTAINER
         let card_bg = egui::Color32::from_rgb(20, 25, 35);
         let border = egui::Stroke::new(1.0, egui::Color32::from_rgb(50, 60, 80));
 
@@ -225,29 +198,19 @@ impl PratyakshApp {
 
                 ui.add_space(30.0);
 
-                // GLOWING BUTTON
-                let btn_color = if self.is_loading { egui::Color32::GRAY } else { egui::Color32::from_rgb(0, 100, 255) };
                 let btn_text = if self.is_loading { "PROCESSING..." } else { "RUN ANALYSIS" };
-                
-                let btn = egui::Button::new(
-                    egui::RichText::new(btn_text)
-                        .size(16.0)
-                        .strong()
-                        .color(egui::Color32::WHITE)
-                )
-                .min_size(egui::vec2(ui.available_width(), 50.0))
-                .fill(btn_color)
-                .rounding(12.0);
+                let btn = egui::Button::new(egui::RichText::new(btn_text).size(16.0).color(egui::Color32::WHITE))
+                    .min_size(egui::vec2(ui.available_width(), 50.0))
+                    .fill(egui::Color32::from_rgb(0, 100, 255))
+                    .rounding(12.0);
 
                 if ui.add_enabled(!self.is_loading, btn).clicked() {
                     self.analyze();
                 }
             });
 
-        // RESULTS
         if let Some(res) = &self.result {
             ui.add_space(30.0);
-            
             let is_safe = res.risk_level != "CRITICAL";
             let color = if is_safe { egui::Color32::GREEN } else { egui::Color32::from_rgb(255, 60, 60) };
 
@@ -269,7 +232,7 @@ impl PratyakshApp {
         
         if let Some(err) = &self.error_msg {
             ui.add_space(20.0);
-            ui.label(egui::RichText::new(format!("⚠️ {}", err)).color(egui::Color32::RED));
+            ui.colored_label(egui::Color32::RED, format!("⚠️ {}", err));
         }
     }
 
@@ -294,12 +257,9 @@ impl PratyakshApp {
             self.config.backend_url.trim_end_matches('/'), self.fy_end, self.form_type);
 
         thread::spawn(move || {
-            // New Tokio Runtime for this thread
             let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
             rt.block_on(async {
-                // Fake visual delay for "Scanning" feel
                 tokio::time::sleep(Duration::from_millis(500)).await;
-                
                 match reqwest::get(&url).await {
                     Ok(resp) => match resp.json::<ComplianceRisk>().await {
                         Ok(data) => { let _ = tx.send(Ok(data)); },
@@ -311,10 +271,6 @@ impl PratyakshApp {
         });
     }
 }
-
-// ============================================================================
-//  5. STYLING & HELPERS
-// ============================================================================
 
 fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &[u8], active: bool) -> egui::Response {
     let bg = if active { egui::Color32::from_rgb(30, 35, 50) } else { egui::Color32::TRANSPARENT };
@@ -332,20 +288,11 @@ fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &[u8], active: bool) -> eg
 
 fn setup_futuristic_theme(ctx: &egui::Context) {
     let mut visuals = egui::Visuals::dark();
-    visuals.window_fill = egui::Color32::from_rgb(10, 12, 16); // Deep Space Black
+    visuals.window_fill = egui::Color32::from_rgb(10, 12, 16);
     visuals.panel_fill = egui::Color32::from_rgb(10, 12, 16);
-    
     visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(20, 25, 30);
-    visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(40, 50, 70));
-    
-    // Neon Selection
     visuals.selection.bg_fill = egui::Color32::from_rgb(0, 120, 255);
-    visuals.selection.stroke = egui::Stroke::new(1.0, egui::Color32::from_rgb(0, 200, 255));
-    
     ctx.set_visuals(visuals);
-    
-    // Set Font (Optional - uses default if not provided)
-    // Egui defaults are actually quite clean monospaced-style which fits "Cyber/Tech"
 }
 
 fn main() -> eframe::Result<()> {
