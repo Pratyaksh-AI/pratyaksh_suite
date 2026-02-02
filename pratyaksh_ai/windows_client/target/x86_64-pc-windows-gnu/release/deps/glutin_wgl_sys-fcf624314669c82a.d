@@ -1,0 +1,11 @@
+/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/deps/glutin_wgl_sys-fcf624314669c82a.d: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glutin_wgl_sys-0.5.0/src/lib.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_bindings.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_extra_bindings.rs
+
+/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/deps/libglutin_wgl_sys-fcf624314669c82a.rlib: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glutin_wgl_sys-0.5.0/src/lib.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_bindings.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_extra_bindings.rs
+
+/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/deps/libglutin_wgl_sys-fcf624314669c82a.rmeta: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glutin_wgl_sys-0.5.0/src/lib.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_bindings.rs /workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_extra_bindings.rs
+
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/glutin_wgl_sys-0.5.0/src/lib.rs:
+/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_bindings.rs:
+/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out/wgl_extra_bindings.rs:
+
+# env-dep:OUT_DIR=/workspaces/pratyaksh_suite/pratyaksh_ai/windows_client/target/x86_64-pc-windows-gnu/release/build/glutin_wgl_sys-80efb02ff516a05d/out
