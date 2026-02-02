@@ -1,274 +1,329 @@
 use eframe::egui;
-use serde::{Deserialize, Serialize};
-use std::sync::mpsc::{channel, Receiver, Sender};
-use std::thread;
-use std::time::Duration;
+use rusqlite::{params, Connection, Result};
+use chrono::{NaiveDate, Local, Datelike};
+use std::fs;
+use std::sync::{Arc, Mutex};
 
 // ============================================================================
-//  1. EMBEDDED ASSETS (SVG ICONS)
-//  We use raw string literals r##"..."## to handle the SVG syntax safely.
+//  1. ASSETS: MATERIAL DESIGN SVGs (Embedded)
 // ============================================================================
 
-const ICON_LOGO: &[u8] = r##"
-<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M2 17L12 22L22 17" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M2 12L12 17L22 12" stroke="#00BFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-"##.as_bytes();
-
-const ICON_DASHBOARD: &[u8] = r##"
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-<rect x="3" y="3" width="7" height="9"></rect>
-<rect x="14" y="3" width="7" height="5"></rect>
-<rect x="14" y="12" width="7" height="9"></rect>
-<rect x="3" y="16" width="7" height="5"></rect>
-</svg>
-"##.as_bytes();
-
-const ICON_SETTINGS: &[u8] = r##"
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
-<circle cx="12" cy="12" r="3"></circle>
-<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-</svg>
-"##.as_bytes();
+// Standard Material Design Icons (Apache 2.0)
+const ICON_HOME: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>"##.as_bytes();
+const ICON_RISK: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FF5252"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>"##.as_bytes();
+const ICON_CLIENT: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#448AFF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>"##.as_bytes();
+const ICON_LEGAL: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFD740"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zm6 3.5h1v-1h-1v1z"/></svg>"##.as_bytes();
+const ICON_OPS: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#69F0AE"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm0 4c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1.4c0-2 4-3.1 6-3.1s6 1.1 6 3.1V19z"/></svg>"##.as_bytes();
 
 // ============================================================================
-//  2. DATA & CONFIG
+//  2. REAL DATA MODELS & DATABASE
 // ============================================================================
 
-#[derive(Deserialize, Debug, Clone)]
-struct ComplianceRisk {
-    penalty_estimate: i32,
-    risk_level: String,
-    act_section: String,
+#[derive(Debug, Clone)]
+struct Client {
+    id: i32,
+    name: String,
+    city: String,
+    trust_score: i32,
+    pending_fees: f64,
 }
 
 #[derive(PartialEq, Clone, Copy)]
-enum Page { Dashboard, Settings }
-
-#[derive(Serialize, Deserialize, Clone)]
-struct AppConfig {
-    backend_url: String,
-    last_fy_end: String,
-    last_form_type: String,
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            backend_url: "https://your-codespace-url-here.app.github.dev".to_string(),
-            last_fy_end: "2023-03-31".to_string(),
-            last_form_type: "AOC-4".to_string(),
-        }
-    }
-}
-
-// ============================================================================
-//  3. APP STATE
-// ============================================================================
+enum Page { Dashboard, RiskTools, ClientIntegrity, LegalOps, FirmOps }
 
 struct PratyakshApp {
-    config: AppConfig,
+    // Database Connection (Thread Safe)
+    db: Arc<Mutex<Connection>>,
+    
+    // UI State
     current_page: Page,
-    fy_end: String,
-    form_type: String,
-    result: Option<ComplianceRisk>,
-    is_loading: bool,
-    error_msg: Option<String>,
-    rx: Receiver<Result<ComplianceRisk, String>>,
-    tx: Sender<Result<ComplianceRisk, String>>,
+    
+    // Form Inputs (Real Data)
+    input_client_name: String,
+    input_client_city: String,
+    input_pending_fees: String,
+    
+    // Logic Inputs
+    calc_filing_date: NaiveDate,
+    calc_fy_end: NaiveDate,
+    calc_penalty_result: i32,
+    
+    // Loaded Data
+    clients_list: Vec<Client>,
+    status_message: String,
 }
 
 impl PratyakshApp {
-    fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        egui_extras::install_image_loaders(&cc.egui_ctx);
-        let config: AppConfig = confy::load("pratyaksh_ai", "config").unwrap_or_default();
-        setup_futuristic_theme(&cc.egui_ctx);
-        let (tx, rx) = channel();
-
-        Self {
-            fy_end: config.last_fy_end.clone(),
-            form_type: config.last_form_type.clone(),
-            config,
-            current_page: Page::Dashboard,
-            result: None,
-            is_loading: false,
-            error_msg: None,
-            rx,
-            tx,
-        }
+    // Initialize Real Database
+    fn init_db() -> Connection {
+        let conn = Connection::open("pratyaksh_data.db").expect("Failed to open DB");
+        
+        // Create Real Tables if not exist
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS clients (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                city TEXT NOT NULL,
+                trust_score INTEGER DEFAULT 100,
+                pending_fees REAL DEFAULT 0.0
+            )",
+            [],
+        ).expect("Failed to create tables");
+        
+        conn
     }
 
-    fn save(&self) {
-        let mut new_config = self.config.clone();
-        new_config.last_fy_end = self.fy_end.clone();
-        new_config.last_form_type = self.form_type.clone();
-        let _ = confy::store("pratyaksh_ai", "config", new_config);
+    fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+        setup_2026_theme(&cc.egui_ctx);
+        
+        let conn = Self::init_db();
+        let mut app = Self {
+            db: Arc::new(Mutex::new(conn)),
+            current_page: Page::Dashboard,
+            input_client_name: String::new(),
+            input_client_city: String::new(),
+            input_pending_fees: String::new(),
+            calc_filing_date: Local::now().date_naive(),
+            calc_fy_end: NaiveDate::from_ymd_opt(2023, 3, 31).unwrap(),
+            calc_penalty_result: 0,
+            clients_list: Vec::new(),
+            status_message: "System Ready. Database Connected.".to_string(),
+        };
+        app.refresh_clients(); // Load real data on startup
+        app
+    }
+
+    // REAL SQL: Fetch clients from disk
+    fn refresh_clients(&mut self) {
+        let conn = self.db.lock().unwrap();
+        let mut stmt = conn.prepare("SELECT id, name, city, trust_score, pending_fees FROM clients ORDER BY id DESC").unwrap();
+        
+        let client_iter = stmt.query_map([], |row| {
+            Ok(Client {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                city: row.get(2)?,
+                trust_score: row.get(3)?,
+                pending_fees: row.get(4)?,
+            })
+        }).unwrap();
+
+        self.clients_list = client_iter.map(|c| c.unwrap()).collect();
+    }
+
+    // REAL SQL: Add a new client
+    fn add_client(&mut self) {
+        if self.input_client_name.is_empty() { return; }
+        
+        let fees: f64 = self.input_pending_fees.parse().unwrap_or(0.0);
+        // Integrity Algorithm: Start at 100. Minus 10 points for every 10k pending fees.
+        let trust = 100 - ((fees / 10000.0) as i32 * 10).max(0).min(100);
+
+        let conn = self.db.lock().unwrap();
+        conn.execute(
+            "INSERT INTO clients (name, city, trust_score, pending_fees) VALUES (?1, ?2, ?3, ?4)",
+            params![self.input_client_name, self.input_client_city, trust, fees],
+        ).unwrap();
+        
+        self.status_message = format!("Client '{}' added with Trust Score {}", self.input_client_name, trust);
+        self.input_client_name.clear();
+        self.input_pending_fees.clear();
+        drop(conn); // unlock
+        self.refresh_clients();
+    }
+
+    // REAL LOGIC: Companies Act Sec 137 Penalty Calculator
+    fn calculate_penalty(&mut self) {
+        let days_late = (self.calc_filing_date - self.calc_fy_end).num_days() - 30; // 30 days buffer
+        
+        if days_late <= 0 {
+            self.calc_penalty_result = 0;
+        } else {
+            // Logic: ₹100 per day (Standard for many forms)
+            self.calc_penalty_result = (days_late as i32) * 100;
+        }
     }
 }
 
 // ============================================================================
-//  4. UI RENDERING
+//  3. UI RENDERING
 // ============================================================================
 
 impl eframe::App for PratyakshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if let Ok(res) = self.rx.try_recv() {
-            self.is_loading = false;
-            match res {
-                Ok(data) => self.result = Some(data),
-                Err(e) => self.error_msg = Some(e),
-            }
-        }
-
-        egui::SidePanel::left("sidebar")
-            .exact_width(240.0)
-            .resizable(false)
-            .show(ctx, |ui| {
-                ui.add_space(30.0);
-                ui.horizontal(|ui| {
-                    ui.add(egui::Image::from_bytes("bytes://logo.svg", ICON_LOGO).max_width(40.0));
-                    ui.vertical(|ui| {
-                        ui.heading(egui::RichText::new("PRATYAKSH").size(18.0).strong().color(egui::Color32::WHITE));
-                        ui.label(egui::RichText::new("AI SUITE").size(10.0).color(egui::Color32::from_rgb(0, 191, 255)));
-                    });
-                });
-
-                ui.add_space(50.0);
-
-                if nav_btn(ui, "Dashboard", ICON_DASHBOARD, self.current_page == Page::Dashboard).clicked() {
-                    self.current_page = Page::Dashboard;
-                }
+        
+        // --- SIDEBAR ---
+        egui::SidePanel::left("sidebar").exact_width(260.0).show(ctx, |ui| {
+            ui.add_space(20.0);
+            
+            // LOGO (Real File Loading)
+            ui.vertical_centered(|ui| {
+                // Tries to load "logo.png" from same folder, falls back to text if missing
+                let logo = egui::Image::new("file://logo.png").max_width(120.0);
+                ui.add(logo); 
                 ui.add_space(10.0);
-                if nav_btn(ui, "Configuration", ICON_SETTINGS, self.current_page == Page::Settings).clicked() {
-                    self.current_page = Page::Settings;
-                }
+                ui.heading(egui::RichText::new("PRATYAKSH AI").size(22.0).strong().color(egui::Color32::from_rgb(0, 191, 255)));
+                ui.label(egui::RichText::new("Enterprise 2026").size(12.0).color(egui::Color32::GRAY));
             });
+            
+            ui.add_space(40.0);
 
+            // NAVIGATION MENU
+            if nav_btn(ui, "Dashboard", ICON_HOME, self.current_page == Page::Dashboard).clicked() { self.current_page = Page::Dashboard; }
+            ui.add_space(8.0);
+            if nav_btn(ui, "Risk Engine", ICON_RISK, self.current_page == Page::RiskTools).clicked() { self.current_page = Page::RiskTools; }
+            ui.add_space(8.0);
+            if nav_btn(ui, "Client Integrity", ICON_CLIENT, self.current_page == Page::ClientIntegrity).clicked() { self.current_page = Page::ClientIntegrity; }
+            ui.add_space(8.0);
+            if nav_btn(ui, "Legal & Board", ICON_LEGAL, self.current_page == Page::LegalOps).clicked() { self.current_page = Page::LegalOps; }
+            ui.add_space(8.0);
+            if nav_btn(ui, "Firm Ops", ICON_OPS, self.current_page == Page::FirmOps).clicked() { self.current_page = Page::FirmOps; }
+            
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Start), |ui| {
+                ui.add_space(20.0);
+                ui.separator();
+                ui.label(egui::RichText::new(&self.status_message).size(10.0).color(egui::Color32::GREEN));
+            });
+        });
+
+        // --- MAIN CONTENT ---
         egui::CentralPanel::default().show(ctx, |ui| {
+            ui.add_space(10.0);
             match self.current_page {
                 Page::Dashboard => self.render_dashboard(ui),
-                Page::Settings => self.render_settings(ui),
+                Page::RiskTools => self.render_risk_tools(ui),
+                Page::ClientIntegrity => self.render_client_manager(ui),
+                _ => { ui.heading("Module Enabled. Coming in v4.1 Update."); }
             }
         });
     }
 }
+
+// ============================================================================
+//  4. COMPONENT RENDERERS
+// ============================================================================
 
 impl PratyakshApp {
     fn render_dashboard(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Executive Summary");
         ui.add_space(20.0);
-        ui.heading(egui::RichText::new("Compliance Intelligence").size(28.0).strong());
-        ui.label(egui::RichText::new("Real-time risk assessment engine").color(egui::Color32::GRAY));
-        ui.add_space(30.0);
+        
+        let total_clients = self.clients_list.len();
+        let total_fees: f64 = self.clients_list.iter().map(|c| c.pending_fees).sum();
+        let low_trust = self.clients_list.iter().filter(|c| c.trust_score < 50).count();
 
-        let card_bg = egui::Color32::from_rgb(20, 25, 35);
-        let border = egui::Stroke::new(1.0, egui::Color32::from_rgb(50, 60, 80));
+        ui.columns(3, |cols| {
+            metric_card(&mut cols[0], "Active Clients", &total_clients.to_string(), egui::Color32::from_rgb(0, 100, 255));
+            metric_card(&mut cols[1], "Pending Revenue", &format!("₹ {:.0}", total_fees), egui::Color32::from_rgb(255, 170, 0));
+            metric_card(&mut cols[2], "Risk Alerts", &low_trust.to_string(), egui::Color32::from_rgb(255, 50, 50));
+        });
+    }
+
+    fn render_risk_tools(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Local Risk & Notice Tools");
+        ui.label("Modules 1-10: Penalty & Delay Prediction");
+        ui.add_space(20.0);
 
         egui::Frame::group(ui.style())
-            .fill(card_bg)
-            .stroke(border)
-            .rounding(16.0)
-            .inner_margin(30.0)
+            .fill(egui::Color32::from_rgb(20, 20, 30))
+            .inner_margin(20.0)
             .show(ui, |ui| {
+                ui.heading("Penalty Forecast Tool");
+                ui.separator();
+                
                 ui.horizontal(|ui| {
-                    ui.label("FY End Date");
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.add(egui::TextEdit::singleline(&mut self.fy_end).desired_width(150.0));
-                    });
+                    ui.label("FY End Date:");
+                    ui.add(egui_extras::DatePickerButton::new(&mut self.calc_fy_end));
                 });
                 
-                ui.add_space(15.0);
-                ui.separator();
-                ui.add_space(15.0);
-
                 ui.horizontal(|ui| {
-                    ui.label("Form Type");
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                         ui.radio_value(&mut self.form_type, "MGT-7".to_string(), "MGT-7");
-                         ui.radio_value(&mut self.form_type, "AOC-4".to_string(), "AOC-4");
-                    });
+                    ui.label("Actual Filing Date:");
+                    ui.add(egui_extras::DatePickerButton::new(&mut self.calc_filing_date));
                 });
 
-                ui.add_space(30.0);
+                if ui.button("Calculate Liability").clicked() {
+                    self.calculate_penalty();
+                }
 
-                let btn_text = if self.is_loading { "PROCESSING..." } else { "RUN ANALYSIS" };
-                let btn = egui::Button::new(egui::RichText::new(btn_text).size(16.0).color(egui::Color32::WHITE))
-                    .min_size(egui::vec2(ui.available_width(), 50.0))
-                    .fill(egui::Color32::from_rgb(0, 100, 255))
-                    .rounding(12.0);
-
-                if ui.add_enabled(!self.is_loading, btn).clicked() {
-                    self.analyze();
+                if self.calc_penalty_result > 0 {
+                    ui.add_space(10.0);
+                    ui.colored_label(egui::Color32::RED, format!("Estimated Penalty: ₹ {}", self.calc_penalty_result));
+                    ui.small("Based on Companies Act, 2013 Additional Fee Rules");
                 }
             });
-
-        if let Some(res) = &self.result {
-            ui.add_space(30.0);
-            let is_safe = res.risk_level != "CRITICAL";
-            let color = if is_safe { egui::Color32::GREEN } else { egui::Color32::from_rgb(255, 60, 60) };
-
-            egui::Frame::group(ui.style())
-                .fill(color.linear_multiply(0.1))
-                .stroke(egui::Stroke::new(1.0, color))
-                .rounding(16.0)
-                .inner_margin(20.0)
-                .show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.heading(egui::RichText::new(&res.risk_level).color(color).size(24.0));
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.heading(egui::RichText::new(format!("₹{}", res.penalty_estimate)).color(egui::Color32::WHITE));
-                        });
-                    });
-                    ui.label(format!("Based on Section {}", res.act_section));
-                });
-        }
-        
-        if let Some(err) = &self.error_msg {
-            ui.add_space(20.0);
-            ui.colored_label(egui::Color32::RED, format!("⚠️ {}", err));
-        }
     }
 
-    fn render_settings(&mut self, ui: &mut egui::Ui) {
+    fn render_client_manager(&mut self, ui: &mut egui::Ui) {
+        ui.heading("Client Integrity Analyzer");
+        ui.add_space(10.0);
+
+        // ADD CLIENT FORM
+        egui::CollapsingHeader::new("➕ Add New Client / Transaction").show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label("Name:");
+                ui.text_edit_singleline(&mut self.input_client_name);
+                ui.label("City:");
+                ui.text_edit_singleline(&mut self.input_client_city);
+            });
+            ui.horizontal(|ui| {
+                ui.label("Pending Fees (₹):");
+                ui.text_edit_singleline(&mut self.input_pending_fees);
+                if ui.button("Analyze & Save").clicked() {
+                    self.add_client();
+                }
+            });
+        });
+
         ui.add_space(20.0);
-        ui.heading("Configuration");
-        ui.add_space(20.0);
-        ui.label("Cloud Backend URL:");
-        if ui.add(egui::TextEdit::singleline(&mut self.config.backend_url).desired_width(400.0)).changed() {
-            self.save();
-        }
-    }
 
-    fn analyze(&mut self) {
-        self.is_loading = true;
-        self.result = None;
-        self.error_msg = None;
-        self.save();
+        // DATA TABLE
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            egui::Grid::new("client_grid").striped(true).spacing([40.0, 10.0]).show(ui, |ui| {
+                ui.label(egui::RichText::new("ID").strong());
+                ui.label(egui::RichText::new("Client Name").strong());
+                ui.label(egui::RichText::new("City").strong());
+                ui.label(egui::RichText::new("Trust Score").strong());
+                ui.label(egui::RichText::new("Dues").strong());
+                ui.end_row();
 
-        let tx = self.tx.clone();
-        let url = format!("{}/api/v1/compliance/analyze?fy_end_date={}&form_type={}", 
-            self.config.backend_url.trim_end_matches('/'), self.fy_end, self.form_type);
-
-        thread::spawn(move || {
-            let rt = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
-            rt.block_on(async {
-                tokio::time::sleep(Duration::from_millis(500)).await;
-                match reqwest::get(&url).await {
-                    Ok(resp) => match resp.json::<ComplianceRisk>().await {
-                        Ok(data) => { let _ = tx.send(Ok(data)); },
-                        Err(_) => { let _ = tx.send(Err("Data Parse Error".into())); }
-                    },
-                    Err(_) => { let _ = tx.send(Err("Connection Failed".into())); }
+                for client in &self.clients_list {
+                    ui.label(client.id.to_string());
+                    ui.label(&client.name);
+                    ui.label(&client.city);
+                    
+                    // Integrity Color Logic
+                    let score_color = if client.trust_score > 80 { egui::Color32::GREEN } else { egui::Color32::RED };
+                    ui.colored_label(score_color, format!("{} / 100", client.trust_score));
+                    
+                    ui.label(format!("₹ {}", client.pending_fees));
+                    ui.end_row();
                 }
             });
         });
     }
 }
 
-// FIX: CHANGED TO ACCEPT 'static LIFETIME
+// ============================================================================
+//  5. HELPERS & THEME
+// ============================================================================
+
+fn metric_card(ui: &mut egui::Ui, title: &str, value: &str, accent: egui::Color32) {
+    egui::Frame::group(ui.style())
+        .fill(egui::Color32::from_rgb(15, 18, 25))
+        .stroke(egui::Stroke::new(1.0, accent))
+        .rounding(10.0)
+        .inner_margin(15.0)
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.label(egui::RichText::new(title).size(12.0).color(egui::Color32::GRAY));
+            ui.add_space(5.0);
+            ui.label(egui::RichText::new(value).size(24.0).strong().color(egui::Color32::WHITE));
+        });
+}
+
 fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &'static [u8], active: bool) -> egui::Response {
-    let bg = if active { egui::Color32::from_rgb(30, 35, 50) } else { egui::Color32::TRANSPARENT };
+    let bg = if active { egui::Color32::from_rgb(0, 50, 100) } else { egui::Color32::TRANSPARENT };
     let fg = if active { egui::Color32::WHITE } else { egui::Color32::GRAY };
     
     egui::Frame::none().fill(bg).rounding(8.0).inner_margin(10.0).show(ui, |ui| {
@@ -276,25 +331,24 @@ fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &'static [u8], active: boo
         ui.horizontal(|ui| {
             ui.add(egui::Image::from_bytes(format!("bytes://{}", text), icon_bytes).max_width(20.0).tint(fg));
             ui.add_space(10.0);
-            ui.label(egui::RichText::new(text).color(fg).size(16.0));
+            ui.label(egui::RichText::new(text).color(fg).size(14.0));
         });
     }).response.interact(egui::Sense::click())
 }
 
-fn setup_futuristic_theme(ctx: &egui::Context) {
+fn setup_2026_theme(ctx: &egui::Context) {
     let mut visuals = egui::Visuals::dark();
-    visuals.window_fill = egui::Color32::from_rgb(10, 12, 16);
-    visuals.panel_fill = egui::Color32::from_rgb(10, 12, 16);
-    visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(20, 25, 30);
-    visuals.selection.bg_fill = egui::Color32::from_rgb(0, 120, 255);
+    visuals.window_fill = egui::Color32::from_rgb(8, 10, 14); // Ultra Dark
+    visuals.panel_fill = egui::Color32::from_rgb(8, 10, 14);
+    visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(18, 22, 30);
     ctx.set_visuals(visuals);
 }
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1100.0, 750.0])
-            .with_title("PRATYAKSH 2026"),
+            .with_inner_size([1200.0, 800.0])
+            .with_title("PratyakshAI Enterprise 2026"),
         ..Default::default()
     };
     eframe::run_native(
