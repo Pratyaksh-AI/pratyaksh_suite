@@ -1,0 +1,11 @@
+R_DEF: Internal format may change without notice
+local
+id btnAnalyze
+id etFyDate
+id rbAoc4
+id rbMgt7
+id rgFormType
+id txtResult
+layout activity_main
+string app_name
+style Theme.AppCompat.Light.DarkActionBar
