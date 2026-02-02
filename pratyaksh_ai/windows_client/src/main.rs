@@ -53,7 +53,7 @@ struct PratyakshApp {
     
     // Module 1: City Risk
     selected_city: String,
-    risk_data: HashMap<String, (i32, String)>, // (Score, Strictness)
+    risk_data: HashMap<String, (i32, String)>,
 
     // Module 2: Client Integrity
     clients: Vec<Client>,
@@ -125,7 +125,6 @@ impl PratyakshApp {
             status_msg: "System Online".to_string(),
         };
         
-        // Seed some deterministic risk data (Simulation of Govt Data)
         app.risk_data.insert("Pune".into(), (72, "High".into()));
         app.risk_data.insert("Mumbai".into(), (55, "Medium".into()));
         app.risk_data.insert("Bangalore".into(), (65, "High".into()));
@@ -152,11 +151,10 @@ impl PratyakshApp {
         })).unwrap().map(|e| e.unwrap()).collect();
     }
 
-    // Logic: Calculate Trust Score based on City Risk
     fn add_client(&mut self) {
         let base_score = 100;
         let risk_penalty = match self.risk_data.get(&self.new_client_city) {
-            Some((score, _)) => *score / 5, // Higher city risk = lower initial trust
+            Some((score, _)) => *score / 5,
             None => 0,
         };
         let final_score = base_score - risk_penalty;
@@ -170,12 +168,10 @@ impl PratyakshApp {
         self.refresh_data();
     }
 
-    // Logic: Cryptographic Locking
     fn lock_evidence(&mut self) {
         if self.evidence_client_select.is_empty() { return; }
         let now = Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
         
-        // Create a Hash of the action + time to prove immutability
         let mut hasher = Sha256::new();
         hasher.update(format!("{}{}{}", self.evidence_client_select, self.evidence_action, now));
         let hash = hex::encode(hasher.finalize());
@@ -188,7 +184,6 @@ impl PratyakshApp {
         self.refresh_data();
     }
 
-    // Logic: Fee Calculator
     fn calculate_fee(&mut self) {
         let base_rate = match self.billing_service.as_str() {
             "GST Annual Return" => 10000.0,
@@ -197,7 +192,6 @@ impl PratyakshApp {
             _ => 5000.0
         };
         
-        // City Multiplier (Real estate cost logic)
         let multiplier = match self.billing_city.as_str() {
             "Mumbai" => 1.5,
             "Bangalore" => 1.4,
@@ -255,7 +249,6 @@ impl eframe::App for PratyakshApp {
 }
 
 impl PratyakshApp {
-    // MODULE 1: LOCAL RISK & NOTICE TOOLS
     fn render_city_risk(&mut self, ui: &mut egui::Ui) {
         ui.heading("City Risk Dashboard");
         ui.separator();
@@ -286,7 +279,6 @@ impl PratyakshApp {
         }
     }
 
-    // MODULE 2: CLIENT INTEGRITY
     fn render_clients(&mut self, ui: &mut egui::Ui) {
         ui.heading("Client Integrity Analyzer");
         ui.label("Trust Scores derived from banking & GST pattern mismatch.");
@@ -316,7 +308,6 @@ impl PratyakshApp {
         });
     }
 
-    // MODULE 4: EVIDENCE LOCKER
     fn render_evidence(&mut self, ui: &mut egui::Ui) {
         ui.heading("Evidence Locker (Legal Protection)");
         ui.label("Cryptographically locked audit trail for client advice.");
@@ -358,12 +349,12 @@ impl PratyakshApp {
         });
     }
 
-    // MODULE 5: FIRM OPS
     fn render_ops(&mut self, ui: &mut egui::Ui) {
         ui.heading("Local Billing Optimizer");
         ui.separator();
 
-        ui.grid("billing", |ui| {
+        // FIXED: Using egui::Grid::new().show()
+        egui::Grid::new("billing").spacing([20.0, 10.0]).show(ui, |ui| {
             ui.label("Service:");
             egui::ComboBox::from_id_source("serv_combo").selected_text(&self.billing_service).show_ui(ui, |ui| {
                 ui.selectable_value(&mut self.billing_service, "GST Annual Return".into(), "GST Annual Return");
@@ -381,6 +372,8 @@ impl PratyakshApp {
             ui.end_row();
         });
 
+        ui.add_space(10.0);
+
         if ui.button("Calculate Suggested Fee").clicked() {
             self.calculate_fee();
         }
@@ -392,17 +385,12 @@ impl PratyakshApp {
         }
     }
 
-    // Placeholders for less critical modules to keep code length manageable
     fn render_legal(&mut self, ui: &mut egui::Ui) { ui.heading("Legal & Board Resolutions"); ui.label("Coming in v5.1"); }
     fn render_smart(&mut self, ui: &mut egui::Ui) { 
         ui.heading("Regulator Notebook");
         ui.text_edit_multiline(&mut self.regulator_notes);
     }
 }
-
-// ============================================================================
-//  4. THEME & HELPERS
-// ============================================================================
 
 fn nav_btn(ui: &mut egui::Ui, text: &str, icon: &'static [u8], active: bool) -> egui::Response {
     let bg = if active { egui::Color32::from_rgb(0, 60, 120) } else { egui::Color32::TRANSPARENT };
