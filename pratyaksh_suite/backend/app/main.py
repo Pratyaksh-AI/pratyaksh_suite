@@ -1,8 +1,14 @@
 from fastapi import FastAPI
-from app.modules.compliance.logic import ComplianceCalculator
 from datetime import date
+from app.modules.compliance.logic import ComplianceCalculator
+
+# --- PHASE 2 IMPORTS (Moved to Top) ---
+from app.modules.governance import routes as governance_routes
 
 app = FastAPI(title="PratyakshAI CS Suite")
+
+# --- REGISTER ROUTERS ---
+app.include_router(governance_routes.router, prefix="/api/v1/governance", tags=["Governance"])
 
 @app.get("/")
 def health_check():
