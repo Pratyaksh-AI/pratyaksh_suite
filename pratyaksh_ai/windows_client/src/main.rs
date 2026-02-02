@@ -16,13 +16,11 @@ const ICON_DOC: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M14
 const ICON_LOCK: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>"##.as_bytes();
 const ICON_CHART: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>"##.as_bytes();
 const ICON_BRAIN: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#B0BEC5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>"##.as_bytes();
-const ICON_TRASH: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FF5252"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>"##.as_bytes();
 
 // ============================================================================
 //  2. DATABASE MODELS
 // ============================================================================
 
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct Client {
     id: i32,
@@ -450,7 +448,8 @@ impl PratyakshApp {
         ui.heading("Firm Operations");
         ui.separator();
         
-        ui.subheader("Time Leakage Analyzer");
+        // FIXED: Replaced 'ui.subheader' with 'ui.heading' styled text
+        ui.label(egui::RichText::new("Time Leakage Analyzer").size(16.0).strong());
         for (label, val) in &self.time_leakage_data {
             ui.horizontal(|ui| {
                 ui.label(label);
@@ -461,7 +460,9 @@ impl PratyakshApp {
         ui.label(egui::RichText::new("Estimated Loss: ₹1,84,000").color(egui::Color32::RED));
         
         ui.add_space(20.0);
-        ui.subheader("Local Billing Optimizer");
+        // FIXED: Replaced 'ui.subheader' here too
+        ui.label(egui::RichText::new("Local Billing Optimizer").size(16.0).strong());
+        
         egui::Grid::new("bill_grid").show(ui, |ui| {
             ui.label("Service:"); ui.text_edit_singleline(&mut self.billing_service); ui.end_row();
             ui.label("City:"); ui.text_edit_singleline(&mut self.billing_city); ui.end_row();
