@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 # GUI & Graphics
 eframe = "0.26"
-egui_extras = { version = "0.26", features = ["all_loaders"] }
+# FIX: Added "datepicker" to features list below
+egui_extras = { version = "0.26", features = ["all_loaders", "datepicker"] }
 image = { version = "0.24", features = ["jpeg", "png"] }
 
 # Real Data Storage (SQLite)

@@ -1,14 +1,12 @@
 use eframe::egui;
-use rusqlite::{params, Connection, Result};
-use chrono::{NaiveDate, Local, Datelike};
-use std::fs;
+use rusqlite::{params, Connection};
+use chrono::{NaiveDate, Local};
 use std::sync::{Arc, Mutex};
 
 // ============================================================================
 //  1. ASSETS: MATERIAL DESIGN SVGs (Embedded)
 // ============================================================================
 
-// Standard Material Design Icons (Apache 2.0)
 const ICON_HOME: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>"##.as_bytes();
 const ICON_RISK: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FF5252"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>"##.as_bytes();
 const ICON_CLIENT: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#448AFF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>"##.as_bytes();
@@ -32,33 +30,21 @@ struct Client {
 enum Page { Dashboard, RiskTools, ClientIntegrity, LegalOps, FirmOps }
 
 struct PratyakshApp {
-    // Database Connection (Thread Safe)
     db: Arc<Mutex<Connection>>,
-    
-    // UI State
     current_page: Page,
-    
-    // Form Inputs (Real Data)
     input_client_name: String,
     input_client_city: String,
     input_pending_fees: String,
-    
-    // Logic Inputs
     calc_filing_date: NaiveDate,
     calc_fy_end: NaiveDate,
     calc_penalty_result: i32,
-    
-    // Loaded Data
     clients_list: Vec<Client>,
     status_message: String,
 }
 
 impl PratyakshApp {
-    // Initialize Real Database
     fn init_db() -> Connection {
         let conn = Connection::open("pratyaksh_data.db").expect("Failed to open DB");
-        
-        // Create Real Tables if not exist
         conn.execute(
             "CREATE TABLE IF NOT EXISTS clients (
                 id INTEGER PRIMARY KEY,
@@ -69,7 +55,6 @@ impl PratyakshApp {
             )",
             [],
         ).expect("Failed to create tables");
-        
         conn
     }
 
@@ -90,11 +75,10 @@ impl PratyakshApp {
             clients_list: Vec::new(),
             status_message: "System Ready. Database Connected.".to_string(),
         };
-        app.refresh_clients(); // Load real data on startup
+        app.refresh_clients();
         app
     }
 
-    // REAL SQL: Fetch clients from disk
     fn refresh_clients(&mut self) {
         let conn = self.db.lock().unwrap();
         let mut stmt = conn.prepare("SELECT id, name, city, trust_score, pending_fees FROM clients ORDER BY id DESC").unwrap();
@@ -112,12 +96,10 @@ impl PratyakshApp {
         self.clients_list = client_iter.map(|c| c.unwrap()).collect();
     }
 
-    // REAL SQL: Add a new client
     fn add_client(&mut self) {
         if self.input_client_name.is_empty() { return; }
         
         let fees: f64 = self.input_pending_fees.parse().unwrap_or(0.0);
-        // Integrity Algorithm: Start at 100. Minus 10 points for every 10k pending fees.
         let trust = 100 - ((fees / 10000.0) as i32 * 10).max(0).min(100);
 
         let conn = self.db.lock().unwrap();
@@ -129,37 +111,27 @@ impl PratyakshApp {
         self.status_message = format!("Client '{}' added with Trust Score {}", self.input_client_name, trust);
         self.input_client_name.clear();
         self.input_pending_fees.clear();
-        drop(conn); // unlock
+        drop(conn);
         self.refresh_clients();
     }
 
-    // REAL LOGIC: Companies Act Sec 137 Penalty Calculator
     fn calculate_penalty(&mut self) {
-        let days_late = (self.calc_filing_date - self.calc_fy_end).num_days() - 30; // 30 days buffer
-        
+        let days_late = (self.calc_filing_date - self.calc_fy_end).num_days() - 30;
         if days_late <= 0 {
             self.calc_penalty_result = 0;
         } else {
-            // Logic: ₹100 per day (Standard for many forms)
             self.calc_penalty_result = (days_late as i32) * 100;
         }
     }
 }
 
-// ============================================================================
-//  3. UI RENDERING
-// ============================================================================
-
 impl eframe::App for PratyakshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         
-        // --- SIDEBAR ---
         egui::SidePanel::left("sidebar").exact_width(260.0).show(ctx, |ui| {
             ui.add_space(20.0);
             
-            // LOGO (Real File Loading)
             ui.vertical_centered(|ui| {
-                // Tries to load "logo.png" from same folder, falls back to text if missing
                 let logo = egui::Image::new("file://logo.png").max_width(120.0);
                 ui.add(logo); 
                 ui.add_space(10.0);
@@ -169,7 +141,6 @@ impl eframe::App for PratyakshApp {
             
             ui.add_space(40.0);
 
-            // NAVIGATION MENU
             if nav_btn(ui, "Dashboard", ICON_HOME, self.current_page == Page::Dashboard).clicked() { self.current_page = Page::Dashboard; }
             ui.add_space(8.0);
             if nav_btn(ui, "Risk Engine", ICON_RISK, self.current_page == Page::RiskTools).clicked() { self.current_page = Page::RiskTools; }
@@ -180,14 +151,14 @@ impl eframe::App for PratyakshApp {
             ui.add_space(8.0);
             if nav_btn(ui, "Firm Ops", ICON_OPS, self.current_page == Page::FirmOps).clicked() { self.current_page = Page::FirmOps; }
             
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::Start), |ui| {
+            // FIX: Changed Align::Start to Align::Min
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::Min), |ui| {
                 ui.add_space(20.0);
                 ui.separator();
                 ui.label(egui::RichText::new(&self.status_message).size(10.0).color(egui::Color32::GREEN));
             });
         });
 
-        // --- MAIN CONTENT ---
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.add_space(10.0);
             match self.current_page {
@@ -199,10 +170,6 @@ impl eframe::App for PratyakshApp {
         });
     }
 }
-
-// ============================================================================
-//  4. COMPONENT RENDERERS
-// ============================================================================
 
 impl PratyakshApp {
     fn render_dashboard(&mut self, ui: &mut egui::Ui) {
@@ -258,7 +225,6 @@ impl PratyakshApp {
         ui.heading("Client Integrity Analyzer");
         ui.add_space(10.0);
 
-        // ADD CLIENT FORM
         egui::CollapsingHeader::new("➕ Add New Client / Transaction").show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label("Name:");
@@ -277,7 +243,6 @@ impl PratyakshApp {
 
         ui.add_space(20.0);
 
-        // DATA TABLE
         egui::ScrollArea::vertical().show(ui, |ui| {
             egui::Grid::new("client_grid").striped(true).spacing([40.0, 10.0]).show(ui, |ui| {
                 ui.label(egui::RichText::new("ID").strong());
@@ -292,7 +257,6 @@ impl PratyakshApp {
                     ui.label(&client.name);
                     ui.label(&client.city);
                     
-                    // Integrity Color Logic
                     let score_color = if client.trust_score > 80 { egui::Color32::GREEN } else { egui::Color32::RED };
                     ui.colored_label(score_color, format!("{} / 100", client.trust_score));
                     
@@ -303,10 +267,6 @@ impl PratyakshApp {
         });
     }
 }
-
-// ============================================================================
-//  5. HELPERS & THEME
-// ============================================================================
 
 fn metric_card(ui: &mut egui::Ui, title: &str, value: &str, accent: egui::Color32) {
     egui::Frame::group(ui.style())
@@ -338,7 +298,7 @@ fn nav_btn(ui: &mut egui::Ui, text: &str, icon_bytes: &'static [u8], active: boo
 
 fn setup_2026_theme(ctx: &egui::Context) {
     let mut visuals = egui::Visuals::dark();
-    visuals.window_fill = egui::Color32::from_rgb(8, 10, 14); // Ultra Dark
+    visuals.window_fill = egui::Color32::from_rgb(8, 10, 14); 
     visuals.panel_fill = egui::Color32::from_rgb(8, 10, 14);
     visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(18, 22, 30);
     ctx.set_visuals(visuals);
