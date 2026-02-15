@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+
+// Page Components
 import { Home } from './pages/Home';
 import { DownloadScreen } from './pages/Download';
+import { ToolsPage } from './pages/Tools';
+import { PricingPage } from './pages/Pricing';
+import { AboutPage } from './pages/About';
+import { ContactPage } from './pages/Contact';
+import { ModulesPage } from './pages/Modules';
+import { ResourcePage } from './pages/Resources';
 import { GenericPage } from './pages/GenericPage';
-import { ToolsPage } from './pages/Tools'; // Import the new Tools Page
+
 import { THEME } from './data/constants';
 
 export default function App() {
@@ -13,21 +21,50 @@ export default function App() {
 
   useEffect(() => { window.scrollTo(0, 0); }, [page]);
 
+  // Router Logic to select the correct component based on state
+  const renderPage = () => {
+    switch(page) {
+      // Core Pages
+      case 'home': return <Home setPage={setPage} />;
+      case 'download': return <DownloadScreen setPage={setPage} />;
+      case 'tools': return <ToolsPage setPage={setPage} />;
+      
+      // Feature-Rich Custom Layouts
+      case 'pricing': return <PricingPage setPage={setPage} />;
+      case 'about': return <AboutPage setPage={setPage} />;
+      case 'contact': return <ContactPage setPage={setPage} />;
+      
+      // Module Overview
+      case 'city_risk':
+      case 'firm_ops':
+      case 'client_integrity':
+      case 'evidence_locker':
+         return <ModulesPage setPage={setPage} />; 
+      
+      // Resource Pages (Text-heavy docs)
+      case 'legal':
+      case 'privacy':
+      case 'terms':
+      case 'documentation':
+      case 'api_ref':
+      case 'status':
+      case 'news':
+      case 'careers':
+      case 'case_studies':
+         return <ResourcePage pageKey={page} setPage={setPage} />;
+
+      // Fallback to GenericPage for Tools & Calculators
+      default: return <GenericPage pageKey={page} setPage={setPage} />;
+    }
+  };
+
   return (
     <div className={`font-sans antialiased ${THEME.bg} ${THEME.textMain} selection:bg-[#4FF978] selection:text-black`}>
       <Navbar setPage={setPage} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
       
-      {/* Route: Home */}
-      {page === 'home' && <Home setPage={setPage} />}
-      
-      {/* Route: Download */}
-      {page === 'download' && <DownloadScreen setPage={setPage} />}
-      
-      {/* Route: Tools Catalog (New) */}
-      {page === 'tools' && <ToolsPage setPage={setPage} />}
-      
-      {/* Route: Generic Pages (About, Legal, Specific Calculators) */}
-      {!['home', 'download', 'tools'].includes(page) && <GenericPage pageKey={page} setPage={setPage} />}
+      <main>
+        {renderPage()}
+      </main>
 
       <Footer setPage={setPage} />
     </div>
