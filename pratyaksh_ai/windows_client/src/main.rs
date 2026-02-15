@@ -2,13 +2,13 @@
 
 use eframe::egui;
 use rusqlite::{params, Connection};
-use chrono::{Local, NaiveDate};
+use chrono::{Local, NaiveDate, Datelike};
 use std::sync::{Arc, Mutex};
 use sha2::{Sha256, Digest};
 use std::collections::HashMap;
 
 // ============================================================================
-//  1. ASSETS: PROFESSIONAL SVG ICONS (Material Design)
+//  1. ASSETS: PROFESSIONAL SVG ICONS
 // ============================================================================
 
 const COLOR_ACCENT: egui::Color32 = egui::Color32::from_rgb(79, 249, 120); // Neon Green
@@ -22,7 +22,8 @@ const ICON_USER: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" 
 const ICON_DOC: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>"##.as_bytes();
 const ICON_LOCK: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>"##.as_bytes();
 const ICON_CALC: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>"##.as_bytes();
-const ICON_SETTINGS: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>"##.as_bytes();
+const ICON_SETTINGS: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>"##.as_bytes();
+const ICON_SHIELD: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>"##.as_bytes();
 
 // ============================================================================
 //  2. DATA MODELS
@@ -121,6 +122,7 @@ impl PratyakshApp {
         
         let mut risk = HashMap::new();
         risk.insert("Pune".into(), 72); risk.insert("Mumbai".into(), 55);
+        risk.insert("Bangalore".into(), 65);
 
         let mut app = Self {
             db: Arc::new(Mutex::new(Self::init_db())),
@@ -251,7 +253,7 @@ impl PratyakshApp {
 
     fn calc_gratuity(&mut self) {
         let sal = self.grat_sal.parse::<f64>().unwrap_or(0.0);
-        let yrs = self.grat_years.parse::<f64>().unwrap_or(0.0);
+        let yrs = self.grat_yrs.parse::<f64>().unwrap_or(0.0); // Fixed variable name
         self.grat_result = format!("Payable: ₹{:.0}", sal * (15.0/26.0) * yrs);
     }
 
@@ -329,7 +331,7 @@ impl PratyakshApp {
 
     fn calc_audit(&mut self) {
         let y = self.audit_years.parse::<i32>().unwrap_or(0);
-        self.audit_result = if y >= 10 { "Rotation Required" } else { format!("{} years left", 10 - y) };
+        self.audit_result = if y >= 10 { "Rotation Required".to_string() } else { format!("{} years left", 10 - y) }; // Fixed Type Error
     }
 
     fn calc_networth(&mut self) {
@@ -469,6 +471,39 @@ impl eframe::App for PratyakshApp {
                                 if ui.button("Compare").clicked() { self.calc_tax_regime(); }
                                 ui.label(&self.tax_result);
                             },
+                            ActiveTool::CryptoTax => {
+                                ui.heading("VDA / Crypto Tax");
+                                ui.horizontal(|ui| { ui.label("Profit:"); ui.text_edit_singleline(&mut self.cry_prof); });
+                                if ui.button("Calculate").clicked() { self.calc_crypto(); }
+                                ui.label(&self.cry_result);
+                            },
+                            ActiveTool::McaPredictor => {
+                                ui.heading("MCA Predictor");
+                                ui.horizontal(|ui| { ui.label("City:"); ui.text_edit_singleline(&mut self.mca_city); });
+                                ui.horizontal(|ui| { ui.label("Form:"); ui.text_edit_singleline(&mut self.mca_form); });
+                                if ui.button("Predict").clicked() { self.calc_mca(); }
+                                ui.label(&self.mca_result);
+                            },
+                            ActiveTool::BoardRisk => {
+                                ui.heading("Board Risk");
+                                ui.text_edit_multiline(&mut self.board_text);
+                                if ui.button("Scan").clicked() { self.calc_board_risk(); }
+                                for r in &self.board_result { ui.label(r); }
+                            },
+                            ActiveTool::PmlaScanner => {
+                                ui.heading("PMLA Scanner");
+                                ui.horizontal(|ui| { ui.label("Txn Amt:"); ui.text_edit_singleline(&mut self.pmla_amt); });
+                                ui.checkbox(&mut self.pmla_cash, "Is Cash?");
+                                if ui.button("Scan").clicked() { self.calc_pmla(); }
+                                ui.colored_label(if self.pmla_result.contains("HIGH") { egui::Color32::RED } else { egui::Color32::GREEN }, &self.pmla_result);
+                            },
+                            ActiveTool::ShellRisk => {
+                                ui.heading("Shell Company Detector");
+                                ui.horizontal(|ui| { ui.label("Turnover:"); ui.text_edit_singleline(&mut self.shell_to); });
+                                ui.horizontal(|ui| { ui.label("Assets:"); ui.text_edit_singleline(&mut self.shell_ast); });
+                                if ui.button("Analyze").clicked() { self.calc_shell(); }
+                                ui.label(&self.shell_result);
+                            },
                             ActiveTool::MsmeCalc => {
                                 ui.heading("MSME 43B(h)");
                                 ui.horizontal(|ui| { ui.label("Amt:"); ui.text_edit_singleline(&mut self.msme_amt); });
@@ -477,11 +512,19 @@ impl eframe::App for PratyakshApp {
                                 if ui.button("Check").clicked() { self.calc_msme(); }
                                 ui.label(&self.msme_result);
                             },
-                            ActiveTool::CryptoTax => {
-                                ui.heading("VDA / Crypto Tax");
-                                ui.horizontal(|ui| { ui.label("Profit:"); ui.text_edit_singleline(&mut self.cry_prof); });
-                                if ui.button("Calculate").clicked() { self.calc_crypto(); }
-                                ui.label(&self.cry_result);
+                            ActiveTool::GratuityCalc => {
+                                ui.heading("Gratuity");
+                                ui.horizontal(|ui| { ui.label("Basic + DA:"); ui.text_edit_singleline(&mut self.grat_sal); });
+                                ui.horizontal(|ui| { ui.label("Years:"); ui.text_edit_singleline(&mut self.grat_yrs); });
+                                if ui.button("Calc").clicked() { self.calc_gratuity(); }
+                                ui.label(&self.grat_result);
+                            },
+                            ActiveTool::PenaltyCalc => {
+                                ui.heading("Penalty");
+                                ui.horizontal(|ui| { ui.label("Days Delayed:"); ui.text_edit_singleline(&mut self.pen_days); });
+                                ui.horizontal(|ui| { ui.label("Form:"); ui.text_edit_singleline(&mut self.pen_filing_type); });
+                                if ui.button("Calc").clicked() { self.calc_penalty(); }
+                                ui.label(&self.pen_result);
                             },
                             ActiveTool::AdvanceTax => {
                                 ui.heading("Advance Tax");
@@ -534,6 +577,27 @@ impl eframe::App for PratyakshApp {
                                 ui.horizontal(|ui| { ui.label("Exp Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.exp_date)); });
                                 if ui.button("Check").clicked() { self.calc_export(); }
                                 ui.label(&self.exp_result);
+                            },
+                            ActiveTool::HraCalc => {
+                                ui.heading("HRA Calculator");
+                                ui.horizontal(|ui| { ui.label("Basic:"); ui.text_edit_singleline(&mut self.hra_basic); });
+                                ui.horizontal(|ui| { ui.label("Rent:"); ui.text_edit_singleline(&mut self.hra_rent); });
+                                if ui.button("Calculate").clicked() { self.calc_hra(); }
+                                ui.label(&self.hra_result);
+                            },
+                            ActiveTool::PartnerDiss => {
+                                ui.heading("Partnership Dissolution");
+                                ui.horizontal(|ui| { ui.label("Assets:"); ui.text_edit_singleline(&mut self.part_ast); });
+                                ui.horizontal(|ui| { ui.label("Liab:"); ui.text_edit_singleline(&mut self.part_lia); });
+                                if ui.button("Calculate").clicked() { self.calc_partner(); }
+                                ui.label(&self.part_result);
+                            },
+                            ActiveTool::BuybackTax => {
+                                ui.heading("Buyback Tax");
+                                ui.horizontal(|ui| { ui.label("Shares:"); ui.text_edit_singleline(&mut self.buy_shares); });
+                                ui.horizontal(|ui| { ui.label("Price:"); ui.text_edit_singleline(&mut self.buy_price); });
+                                if ui.button("Calculate").clicked() { self.calc_buyback(); }
+                                ui.label(&self.buy_result);
                             },
                             _ => { ui.label("Select a tool from the list above."); }
                         }
