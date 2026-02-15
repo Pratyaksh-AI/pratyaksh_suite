@@ -1,8 +1,8 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { THEME, PAGE_CONTENT } from '../data/constants';
-import * as Tools from '../components/Tools'; // Import the 4 original tools
-import * as Calculators from '../components/Calculators'; // Import the 20 new tools
+import * as Tools from '../components/Tools';
+import * as Calculators from '../components/Calculators';
 
 export const GenericPage = ({ pageKey, setPage }) => {
   const data = PAGE_CONTENT[pageKey];
@@ -12,7 +12,7 @@ export const GenericPage = ({ pageKey, setPage }) => {
 
   const renderTool = () => {
     switch (data.toolType) {
-      // --- ORIGINAL 4 TOOLS ---
+      // --- ORIGINAL CORE TOOLS ---
       case 'mca': return <Tools.McaTool />;
       case 'board': return <Tools.BoardRiskTool />;
       case 'trust': return <Tools.TrustScoreTool />;
@@ -40,7 +40,7 @@ export const GenericPage = ({ pageKey, setPage }) => {
       case 'partner_diss': return <Calculators.PartnershipCalc />;
       case 'crypto_tax': return <Calculators.CryptoTax />;
       
-      default: return null;
+      default: return <div className="p-4 bg-red-100 text-red-800 rounded">Tool component not found for {data.toolType}</div>;
     }
   };
 
