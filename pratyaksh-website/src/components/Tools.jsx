@@ -23,8 +23,8 @@ export const McaTool = () => {
     <div className="bg-white p-8 rounded-xl border border-[#111111]/10">
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-sm font-bold mb-2">ROC City</label>
-          <select value={city} onChange={(e) => setCity(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111]">
+          <label className="block text-sm font-bold mb-2 text-[#111111]">ROC City</label>
+          <select value={city} onChange={(e) => setCity(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111] text-[#111111]">
             <option value="Pune">Pune</option>
             <option value="Mumbai">Mumbai</option>
             <option value="Bangalore">Bangalore</option>
@@ -32,8 +32,8 @@ export const McaTool = () => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-bold mb-2">Form Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111]">
+          <label className="block text-sm font-bold mb-2 text-[#111111]">Form Type</label>
+          <select value={type} onChange={(e) => setType(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111] text-[#111111]">
             <option value="AOC-4">AOC-4 (Financials)</option>
             <option value="MGT-7">MGT-7 (Annual Return)</option>
             <option value="DIR-3">DIR-3 KY</option>
@@ -72,14 +72,15 @@ export const BoardRiskTool = () => {
 
   return (
     <div className="bg-white p-8 rounded-xl border border-[#111111]/10">
-      <label className="block text-sm font-bold mb-2">Draft Resolution Text</label>
+      <label className="block text-sm font-bold mb-2 text-[#111111]">Draft Resolution Text</label>
       <textarea 
         value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full p-4 bg-gray-50 border border-gray-200 rounded mb-6 h-32 outline-none focus:border-[#111111]" 
+        className="w-full p-4 bg-gray-50 border border-gray-200 rounded mb-6 h-32 outline-none focus:border-[#111111] text-[#111111]" 
         placeholder="e.g., RESOLVED THAT the company hereby grants a loan of Rs. 50,00,000 to Mr. Sharma..."
       ></textarea>
       <button onClick={analyze} className="w-full py-3 bg-[#111111] text-white font-bold rounded hover:bg-black/90 transition-colors">Scan for Compliance Risks</button>
+      
       {analysis && (
         <div className="mt-6 space-y-2">
           {analysis.map((risk, i) => (
@@ -102,6 +103,7 @@ export const TrustScoreTool = () => {
     const g = parseFloat(gst) || 0;
     const b = parseFloat(bank) || 0;
     if (g === 0 || b === 0) return;
+    
     const diff = Math.abs(g - b);
     const ratio = diff / b;
     let s = 100 - (ratio * 100);
@@ -112,15 +114,16 @@ export const TrustScoreTool = () => {
     <div className="bg-white p-8 rounded-xl border border-[#111111]/10">
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-sm font-bold mb-2">GST Turnover (₹)</label>
-          <input type="number" value={gst} onChange={(e) => setGst(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111]" placeholder="5000000" />
+          <label className="block text-sm font-bold mb-2 text-[#111111]">GST Turnover (₹)</label>
+          <input type="number" value={gst} onChange={(e) => setGst(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111] text-[#111111]" placeholder="5000000" />
         </div>
         <div>
-          <label className="block text-sm font-bold mb-2">Bank Credits (₹)</label>
-          <input type="number" value={bank} onChange={(e) => setBank(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111]" placeholder="4800000" />
+          <label className="block text-sm font-bold mb-2 text-[#111111]">Bank Credits (₹)</label>
+          <input type="number" value={bank} onChange={(e) => setBank(e.target.value)} className="w-full p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111] text-[#111111]" placeholder="4800000" />
         </div>
       </div>
       <button onClick={calculate} className="w-full py-3 bg-[#111111] text-white font-bold rounded hover:bg-black/90 transition-colors">Calculate Integrity Score</button>
+      
       {score !== null && (
         <div className="mt-8 text-center">
           <div className="text-6xl font-bold mb-2 text-[#111111]">{score}/100</div>
@@ -143,14 +146,21 @@ export const RegulatorTool = () => {
 
   return (
     <div className="bg-white p-8 rounded-xl border border-[#111111]/10">
-      <label className="block text-sm font-bold mb-2">Officer ID / Ward Number</label>
+      <label className="block text-sm font-bold mb-2 text-[#111111]">Officer ID / Ward Number</label>
       <div className="flex gap-4 mb-6">
-        <input type="text" value={id} onChange={(e) => setId(e.target.value)} className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111]" placeholder="e.g. AO-PUNE-05" />
+        <input 
+          type="text" 
+          value={id}
+          onChange={(e) => setId(e.target.value)}
+          className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded outline-none focus:border-[#111111] text-[#111111]" 
+          placeholder="e.g. AO-PUNE-05" 
+        />
         <button onClick={search} className="px-6 bg-[#111111] text-white rounded hover:bg-black/90 transition-colors"><Search size={20}/></button>
       </div>
+      
       {note && (
         <div className="p-6 bg-[#F3F2EC] border-l-4 border-[#BEF264] rounded-r-lg">
-          <h4 className="font-bold mb-1">Intelligence Note:</h4>
+          <h4 className="font-bold mb-1 text-[#111111]">Intelligence Note:</h4>
           <p className="text-[#333333]">{note}</p>
         </div>
       )}
