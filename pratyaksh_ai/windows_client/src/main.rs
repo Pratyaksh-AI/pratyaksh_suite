@@ -8,12 +8,11 @@ use sha2::{Sha256, Digest};
 use std::collections::HashMap;
 
 // ============================================================================
-//  1. ASSETS & THEME CONSTANTS (Source Design System)
+//  1. ASSETS & THEME
 // ============================================================================
 
 const COLOR_ACCENT: egui::Color32 = egui::Color32::from_rgb(79, 249, 120); // #4FF978 (Neon Green)
 const COLOR_BG: egui::Color32 = egui::Color32::from_rgb(17, 17, 17);       // #111111 (Deep Black)
-const COLOR_PANEL: egui::Color32 = egui::Color32::from_rgb(25, 25, 25);
 const COLOR_TEXT: egui::Color32 = egui::Color32::WHITE;
 const COLOR_MUTED: egui::Color32 = egui::Color32::GRAY;
 
@@ -23,14 +22,14 @@ const ICON_SHIELD: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="
 const ICON_SETTINGS: &[u8] = r##"<svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>"##.as_bytes();
 
 // ============================================================================
-//  2. APP MODELS & ENUMS
+//  2. DATA MODELS
 // ============================================================================
 
 #[derive(PartialEq, Clone, Copy)]
 enum Page {
     Dashboard,
-    Modules, // Hub for Core Features
-    Tools,   // Hub for Calculators
+    Modules,
+    Tools,
     Settings
 }
 
@@ -46,55 +45,41 @@ enum ActiveTool {
     PenaltyCalc,
 }
 
-// ============================================================================
-//  3. APP STATE
-// ============================================================================
-
 struct PratyakshApp {
     db: Arc<Mutex<Connection>>,
     current_page: Page,
     active_tool: ActiveTool,
     
-    // --- Dashboard Data ---
+    // Data
     client_count: i32,
     evidence_count: i32,
-    
-    // --- Feature: City Risk ---
-    risk_city: String,
     risk_data: HashMap<String, i32>,
 
-    // --- Feature: Client Integrity ---
+    // Inputs
+    risk_city: String,
     new_client_name: String,
     new_client_city: String,
-
-    // --- Feature: Evidence Locker ---
     ev_client_name: String,
     ev_note: String,
     
-    // --- Tool Inputs ---
+    // Tool Inputs
     mca_city: String,
-    mca_form: String,
+    mca_form: String, // Was causing warning, fixed usage below
     mca_result: String,
-
     board_text: String,
     board_result: Vec<String>,
-
     trust_gst: String,
     trust_bank: String,
     trust_result: String,
-
     reg_id: String,
     reg_note: String,
-
     msme_amt: String,
     msme_inv_date: NaiveDate,
     msme_pay_date: NaiveDate,
     msme_result: String,
-
     grat_sal: String,
     grat_years: String,
     grat_result: String,
-
     pen_filing_type: String,
     pen_delay: String,
     pen_result: String,
@@ -116,57 +101,45 @@ impl PratyakshApp {
         egui_extras::install_image_loaders(&cc.egui_ctx);
         setup_source_theme(&cc.egui_ctx);
         
-        let db = Self::init_db();
-        
         let mut risk_map = HashMap::new();
         risk_map.insert("Pune".into(), 72);
         risk_map.insert("Mumbai".into(), 55);
         risk_map.insert("Bangalore".into(), 65);
 
         let mut app = Self {
-            db: Arc::new(Mutex::new(db)),
+            db: Arc::new(Mutex::new(Self::init_db())),
             current_page: Page::Dashboard,
             active_tool: ActiveTool::None,
-            
             client_count: 0,
             evidence_count: 0,
-            
             risk_city: "Pune".to_owned(),
             risk_data: risk_map,
-
             new_client_name: String::new(),
             new_client_city: "Pune".to_owned(),
-
             ev_client_name: String::new(),
             ev_note: String::new(),
-
+            
+            // Tool Init
             mca_city: "Pune".to_owned(),
             mca_form: "AOC-4".to_owned(),
             mca_result: String::new(),
-
             board_text: String::new(),
             board_result: Vec::new(),
-
             trust_gst: String::new(),
             trust_bank: String::new(),
             trust_result: String::new(),
-
             reg_id: String::new(),
             reg_note: String::new(),
-
             msme_amt: String::new(),
             msme_inv_date: Local::now().date_naive(),
             msme_pay_date: Local::now().date_naive(),
             msme_result: String::new(),
-
             grat_sal: String::new(),
             grat_years: String::new(),
             grat_result: String::new(),
-
             pen_filing_type: "AOC-4".to_owned(),
             pen_delay: "0".to_owned(),
             pen_result: String::new(),
-
             status_msg: "System Online".to_owned(),
         };
         app.update_counts();
@@ -205,10 +178,19 @@ impl PratyakshApp {
         self.status_msg = "Evidence Locked & Hashed".to_owned();
     }
 
-    // --- CALCULATORS ---
+    // --- FIXED CALCULATORS ---
     fn calc_mca(&mut self) {
-        let risk = if self.mca_city == "Pune" { 85 } else { 60 };
-        self.mca_result = format!("Rejection Probability: {}%", risk);
+        // Logic: Start with base risk, adjust based on City AND Form
+        let mut score = 90;
+        if self.mca_city == "Pune" { score -= 15; }
+        if self.mca_city == "Bangalore" { score -= 10; }
+        
+        // FIX: Now using mca_form to influence the result
+        if self.mca_form == "AOC-4" { score -= 5; } // Financials are scrutinized more
+        if self.mca_form == "MGT-7" { score += 5; } // Annual returns slightly safer
+
+        let risk_label = if score > 80 { "Low Risk" } else { "High Scrutiny Risk" };
+        self.mca_result = format!("Acceptance Probability: {}% ({})", score, risk_label);
     }
 
     fn calc_board_risk(&mut self) {
@@ -262,7 +244,6 @@ impl PratyakshApp {
 
 impl eframe::App for PratyakshApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // SIDEBAR
         egui::SidePanel::left("nav").exact_width(200.0).resizable(false).show(ctx, |ui| {
             ui.add_space(20.0);
             ui.heading(egui::RichText::new("PRATYAKSH").size(20.0).strong().color(COLOR_TEXT));
@@ -284,7 +265,6 @@ impl eframe::App for PratyakshApp {
             });
         });
 
-        // CONTENT
         egui::CentralPanel::default().show(ctx, |ui| {
             match self.current_page {
                 Page::Dashboard => self.render_dashboard(ui),
@@ -300,6 +280,7 @@ impl PratyakshApp {
     fn render_dashboard(&mut self, ui: &mut egui::Ui) {
         ui.heading("Executive Dashboard");
         ui.add_space(20.0);
+        
         ui.columns(2, |cols| {
             stat_card(&mut cols[0], "Total Clients", &self.client_count.to_string());
             stat_card(&mut cols[1], "Evidence Logs", &self.evidence_count.to_string());
@@ -319,7 +300,6 @@ impl PratyakshApp {
         ui.add_space(20.0);
         
         egui::Grid::new("mods").spacing([20.0, 20.0]).show(ui, |ui| {
-            // City Risk
             ui.group(|ui| {
                 ui.heading("City Risk Engine");
                 ui.horizontal(|ui| {
@@ -333,7 +313,6 @@ impl PratyakshApp {
                 }
             });
             
-            // Evidence Locker
             ui.group(|ui| {
                 ui.heading("Evidence Locker");
                 ui.text_edit_singleline(&mut self.ev_client_name);
@@ -349,7 +328,6 @@ impl PratyakshApp {
             ui.heading("Select a Tool");
             ui.add_space(10.0);
             
-            // Layout specific buttons to set active_tool
             ui.horizontal(|ui| {
                 if ui.button("MCA Predictor").clicked() { self.active_tool = ActiveTool::McaPredictor; }
                 if ui.button("Board Risk").clicked() { self.active_tool = ActiveTool::BoardRisk; }
@@ -373,7 +351,10 @@ impl PratyakshApp {
         match self.active_tool {
             ActiveTool::McaPredictor => {
                 ui.heading("MCA Predictor");
-                ui.text_edit_singleline(&mut self.mca_city);
+                ui.horizontal(|ui| {
+                    ui.label("City:"); ui.text_edit_singleline(&mut self.mca_city);
+                    ui.label("Form:"); ui.text_edit_singleline(&mut self.mca_form);
+                });
                 if ui.button("Predict").clicked() { self.calc_mca(); }
                 ui.label(&self.mca_result);
             },
@@ -385,10 +366,12 @@ impl PratyakshApp {
             },
             ActiveTool::TrustScore => {
                 ui.heading("Trust Score");
-                ui.text_edit_singleline(&mut self.trust_gst);
-                ui.text_edit_singleline(&mut self.trust_bank);
+                ui.horizontal(|ui| {
+                    ui.label("GST Turnover:"); ui.text_edit_singleline(&mut self.trust_gst);
+                    ui.label("Bank Credits:"); ui.text_edit_singleline(&mut self.trust_bank);
+                });
                 if ui.button("Calc").clicked() { self.calc_trust(); }
-                ui.label(&self.trust_result);
+                ui.heading(egui::RichText::new(&self.trust_result).size(40.0));
             },
             ActiveTool::RegulatorNotes => {
                 ui.heading("Regulator Notes");
@@ -398,24 +381,31 @@ impl PratyakshApp {
             },
             ActiveTool::MsmeCalc => {
                 ui.heading("MSME 43B(h)");
-                ui.text_edit_singleline(&mut self.msme_amt);
-                ui.add(egui_extras::DatePickerButton::new(&mut self.msme_inv_date));
-                ui.add(egui_extras::DatePickerButton::new(&mut self.msme_pay_date));
-                if ui.button("Calc").clicked() { self.calc_msme(); }
-                ui.label(&self.msme_result);
+                ui.horizontal(|ui| {
+                    ui.label("Amt:"); ui.text_edit_singleline(&mut self.msme_amt);
+                    ui.label("Inv Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_inv_date));
+                    ui.label("Pay Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_pay_date));
+                });
+                if ui.button("Check Compliance").clicked() { self.calc_msme(); }
+                ui.label(egui::RichText::new(&self.msme_result).color(COLOR_ACCENT));
             },
             ActiveTool::GratuityCalc => {
                 ui.heading("Gratuity");
-                ui.text_edit_singleline(&mut self.grat_sal);
-                ui.text_edit_singleline(&mut self.grat_years);
+                ui.horizontal(|ui| {
+                    ui.label("Basic + DA:"); ui.text_edit_singleline(&mut self.grat_sal);
+                    ui.label("Years:"); ui.text_edit_singleline(&mut self.grat_years);
+                });
                 if ui.button("Calc").clicked() { self.calc_gratuity(); }
-                ui.label(&self.grat_result);
+                ui.label(egui::RichText::new(&self.grat_result).strong().color(egui::Color32::GREEN));
             },
             ActiveTool::PenaltyCalc => {
                 ui.heading("Penalty");
-                ui.text_edit_singleline(&mut self.pen_delay);
+                ui.horizontal(|ui| {
+                    ui.label("Days Delayed:"); ui.text_edit_singleline(&mut self.pen_delay);
+                    ui.label("Form:"); ui.text_edit_singleline(&mut self.pen_filing_type);
+                });
                 if ui.button("Calc").clicked() { self.calc_penalty(); }
-                ui.label(&self.pen_result);
+                ui.label(egui::RichText::new(&self.pen_result).strong().color(egui::Color32::RED));
             },
             _ => {}
         }
@@ -438,7 +428,7 @@ fn nav_btn(ui: &mut egui::Ui, text: &str, icon: &'static [u8], active: bool) -> 
 }
 
 fn stat_card(ui: &mut egui::Ui, label: &str, val: &str) {
-    egui::Frame::group(ui.style()).fill(COLOR_PANEL).stroke(egui::Stroke::NONE).inner_margin(15.0).show(ui, |ui| {
+    egui::Frame::group(ui.style()).fill(egui::Color32::from_rgb(25, 25, 25)).stroke(egui::Stroke::NONE).inner_margin(15.0).show(ui, |ui| {
         ui.set_width(ui.available_width());
         ui.label(egui::RichText::new(label).size(12.0).color(COLOR_MUTED));
         ui.heading(egui::RichText::new(val).size(24.0).color(COLOR_TEXT));
@@ -454,7 +444,7 @@ fn setup_source_theme(ctx: &egui::Context) {
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([1200.0, 800.0]).with_title("PratyakshAI Enterprise"),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1200.0, 800.0]).with_title("PratyakshAI Ultimate Suite"),
         ..Default::default()
     };
     eframe::run_native("PratyakshAI", options, Box::new(|cc| Box::new(PratyakshApp::new(cc))))
