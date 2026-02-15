@@ -63,7 +63,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="FINANCE & TAX"
+                android:text="FINANCE &amp; TAX"
                 android:textColor="@color/text_gray"
                 android:textSize="12sp"
                 android:layout_marginTop="24dp"
