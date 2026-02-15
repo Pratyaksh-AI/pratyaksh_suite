@@ -1,7 +1,8 @@
 import { 
   MapPin, Users, Lock, Activity, 
-  FileWarning, ShieldCheck, Book, 
-  Calculator, Eye, Globe, CheckCircle, RefreshCw, BarChart, DollarSign, Bitcoin, Scale, Clock, Building2, AlertTriangle, Heart
+  FileWarning, ShieldCheck, Book, Shield, // Added Shield here
+  Calculator, Eye, Globe, CheckCircle, RefreshCw, BarChart, DollarSign, Bitcoin, Scale, Clock, Building2, AlertTriangle, Heart, 
+  Activity as McaIcon
 } from 'lucide-react';
 
 export const THEME = {
@@ -37,7 +38,7 @@ export const PAGE_CONTENT = {
   firm_ops: { title: "Firm Operations", subtitle: "Practice Management Intelligence", type: "feature", icon: Activity },
   
   // --- ORIGINAL CORE TOOLS (4) ---
-  mca_predictor: { title: "MCA Filing Predictor", subtitle: "AI-based rejection probability engine.", type: "tool", toolType: "mca", icon: Activity },
+  mca_predictor: { title: "MCA Filing Predictor", subtitle: "AI-based rejection probability engine.", type: "tool", toolType: "mca", icon: McaIcon },
   board_risk: { title: "Board Risk Simulator", subtitle: "Analyze resolutions for legal exposure.", type: "tool", toolType: "board", icon: FileWarning },
   trust_score: { title: "Trust Scoring", subtitle: "Client reliability index calculator.", type: "tool", toolType: "trust", icon: ShieldCheck },
   reg_notebook: { title: "Regulator Notebook", subtitle: "Officer intelligence database.", type: "tool", toolType: "regulator", icon: Book },
