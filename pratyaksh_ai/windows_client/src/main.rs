@@ -1,18 +1,19 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use eframe::egui;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use chrono::{Local, NaiveDate};
 use std::sync::{Arc, Mutex};
 use sha2::{Sha256, Digest};
 use std::collections::HashMap;
 
 // ============================================================================
-//  1. ASSETS & THEME CONSTANTS
+//  1. ASSETS: PROFESSIONAL SVG ICONS (Material Design)
 // ============================================================================
 
-const COLOR_ACCENT: egui::Color32 = egui::Color32::from_rgb(79, 249, 120); // #4FF978 (Neon Green)
+const COLOR_ACCENT: egui::Color32 = egui::Color32::from_rgb(79, 249, 120); // Neon Green
 const COLOR_BG: egui::Color32 = egui::Color32::from_rgb(17, 17, 17);       // Deep Black
+const COLOR_PANEL: egui::Color32 = egui::Color32::from_rgb(25, 25, 25);
 const COLOR_TEXT: egui::Color32 = egui::Color32::WHITE;
 const COLOR_MUTED: egui::Color32 = egui::Color32::GRAY;
 
@@ -22,7 +23,7 @@ const ICON_USER: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" 
 const ICON_DOC: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>"##.as_bytes();
 const ICON_LOCK: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>"##.as_bytes();
 const ICON_CALC: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>"##.as_bytes();
-const ICON_SETTINGS: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>"##.as_bytes();
+const ICON_SETTINGS: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>"##.as_bytes();
 const ICON_SHIELD: &[u8] = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>"##.as_bytes();
 
 // ============================================================================
@@ -46,7 +47,10 @@ enum ActiveTool {
     TaxRegime, CryptoTax, PmlaScanner, ShellRisk, HraCalc,
     AdvanceTax, LeaseCalc, AngelTax, BuybackTax,
     EsgCheck, UdinValid, AuditRot, NetWorth,
-    ExportTrack, PartnerDiss
+    ExportTrack, PartnerDiss,
+    // New 10 Tools
+    GstInterest, DepreciationCalc, CapitalGains, LlpFee, EmiCalc,
+    BurnRate, SimpleInt, TdsInterest, CagrCalc, BreakEven
 }
 
 #[derive(Debug, Clone)]
@@ -98,6 +102,18 @@ struct PratyakshApp {
     nw_cap: String, nw_res: String, nw_result: String,
     exp_date: NaiveDate, exp_result: String,
     part_ast: String, part_lia: String, part_result: String,
+    
+    // Extra 10 Tools Inputs
+    gst_tax: String, gst_days: String, gst_result: String,
+    dep_cost: String, dep_rate: String, dep_result: String,
+    cg_cost: String, cg_idx1: String, cg_idx2: String, cg_result: String,
+    llp_contrib: String, llp_result: String,
+    emi_p: String, emi_r: String, emi_n: String, emi_result: String,
+    burn_cash: String, burn_spend: String, burn_result: String,
+    si_p: String, si_r: String, si_t: String, si_result: String,
+    tds_amt: String, tds_months: String, tds_result: String,
+    cagr_start: String, cagr_end: String, cagr_yrs: String, cagr_result: String,
+    be_fixed: String, be_price: String, be_var: String, be_result: String,
 
     status_msg: String,
     clients: Vec<Client>,
@@ -111,7 +127,8 @@ impl PratyakshApp {
         let conn = Connection::open("pratyaksh_v10.db").expect("DB Fail");
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS clients (id INTEGER PRIMARY KEY, name TEXT, city TEXT, trust INTEGER);
-             CREATE TABLE IF NOT EXISTS evidence (id INTEGER PRIMARY KEY, client TEXT, note TEXT, hash TEXT, date TEXT);"
+             CREATE TABLE IF NOT EXISTS evidence (id INTEGER PRIMARY KEY, client TEXT, note TEXT, hash TEXT, date TEXT);
+             CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);"
         ).ok();
         conn
     }
@@ -124,10 +141,21 @@ impl PratyakshApp {
         risk.insert("Pune".into(), 72); risk.insert("Mumbai".into(), 55);
         risk.insert("Bangalore".into(), 65);
 
+        let db_conn = Self::init_db();
+        
+        // Check License State
+        let license_accepted = db_conn.query_row(
+            "SELECT value FROM settings WHERE key = 'license_accepted'",
+            [],
+            |row| row.get::<_, String>(0)
+        ).unwrap_or("false".to_string()) == "true";
+
+        let start_page = if license_accepted { Page::Dashboard } else { Page::LicenseAgreement };
+
         let mut app = Self {
-            db: Arc::new(Mutex::new(Self::init_db())),
-            current_page: Page::LicenseAgreement, 
-            license_accepted: false,
+            db: Arc::new(Mutex::new(db_conn)),
+            current_page: start_page, 
+            license_accepted,
             active_tool: ActiveTool::None,
             client_count: 0, evidence_count: 0,
             risk_data: risk, risk_city: "Pune".into(),
@@ -160,7 +188,19 @@ impl PratyakshApp {
             exp_date: Local::now().date_naive(), exp_result: "".into(),
             part_ast: "".into(), part_lia: "".into(), part_result: "".into(),
 
-            status_msg: "Waiting for License Acceptance...".into(),
+            // Extra 10
+            gst_tax: "".into(), gst_days: "".into(), gst_result: "".into(),
+            dep_cost: "".into(), dep_rate: "".into(), dep_result: "".into(),
+            cg_cost: "".into(), cg_idx1: "".into(), cg_idx2: "".into(), cg_result: "".into(),
+            llp_contrib: "".into(), llp_result: "".into(),
+            emi_p: "".into(), emi_r: "".into(), emi_n: "".into(), emi_result: "".into(),
+            burn_cash: "".into(), burn_spend: "".into(), burn_result: "".into(),
+            si_p: "".into(), si_r: "".into(), si_t: "".into(), si_result: "".into(),
+            tds_amt: "".into(), tds_months: "".into(), tds_result: "".into(),
+            cagr_start: "".into(), cagr_end: "".into(), cagr_yrs: "".into(), cagr_result: "".into(),
+            be_fixed: "".into(), be_price: "".into(), be_var: "".into(), be_result: "".into(),
+
+            status_msg: if license_accepted { "System Ready".into() } else { "Waiting for License...".into() },
             clients: vec![],
             evidence_logs: vec![],
             evidence_client_select: "".into(),
@@ -168,6 +208,14 @@ impl PratyakshApp {
         };
         app.refresh_db();
         app
+    }
+
+    fn accept_license(&mut self) {
+        let conn = self.db.lock().unwrap();
+        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('license_accepted', 'true')", []).ok();
+        self.license_accepted = true;
+        self.current_page = Page::Dashboard;
+        self.status_msg = "License Accepted. Welcome.".into();
     }
 
     fn refresh_db(&mut self) {
@@ -214,6 +262,7 @@ impl PratyakshApp {
         self.status_msg = "Evidence Locked & Hashed".to_owned();
     }
 
+    // CALCULATORS
     fn calc_mca(&mut self) {
         let mut score = 90;
         if self.mca_city == "Pune" { score -= 15; }
@@ -253,7 +302,7 @@ impl PratyakshApp {
 
     fn calc_gratuity(&mut self) {
         let sal = self.grat_sal.parse::<f64>().unwrap_or(0.0);
-        let yrs = self.grat_yrs.parse::<f64>().unwrap_or(0.0); // Fixed variable name
+        let yrs = self.grat_yrs.parse::<f64>().unwrap_or(0.0);
         self.grat_result = format!("Payable: ₹{:.0}", sal * (15.0/26.0) * yrs);
     }
 
@@ -331,7 +380,7 @@ impl PratyakshApp {
 
     fn calc_audit(&mut self) {
         let y = self.audit_years.parse::<i32>().unwrap_or(0);
-        self.audit_result = if y >= 10 { "Rotation Required".to_string() } else { format!("{} years left", 10 - y) }; // Fixed Type Error
+        self.audit_result = if y >= 10 { "Rotation Required".to_string() } else { format!("{} years left", 10 - y) };
     }
 
     fn calc_networth(&mut self) {
@@ -350,6 +399,74 @@ impl PratyakshApp {
         let l = self.part_lia.parse::<f64>().unwrap_or(0.0);
         self.part_result = format!("Net Asset: ₹{}", a - l);
     }
+
+    // --- NEW CALCULATORS ---
+    fn calc_gst_int(&mut self) {
+        let tax = self.gst_tax.parse::<f64>().unwrap_or(0.0);
+        let days = self.gst_days.parse::<f64>().unwrap_or(0.0);
+        self.gst_result = format!("Interest (18%): ₹{:.2}", tax * 0.18 * (days / 365.0));
+    }
+    
+    fn calc_dep(&mut self) {
+        let cost = self.dep_cost.parse::<f64>().unwrap_or(0.0);
+        let rate = self.dep_rate.parse::<f64>().unwrap_or(0.0) / 100.0;
+        self.dep_result = format!("WDV: ₹{:.2}", cost * (1.0 - rate));
+    }
+
+    fn calc_cg(&mut self) {
+        let c = self.cg_cost.parse::<f64>().unwrap_or(0.0);
+        let i1 = self.cg_idx1.parse::<f64>().unwrap_or(1.0);
+        let i2 = self.cg_idx2.parse::<f64>().unwrap_or(1.0);
+        self.cg_result = format!("Indexed Cost: ₹{:.2}", c * (i2 / i1));
+    }
+
+    fn calc_llp(&mut self) {
+        let c = self.llp_contrib.parse::<f64>().unwrap_or(0.0);
+        let fee = if c < 100000.0 { 50.0 } else { 100.0 }; // Simplified
+        self.llp_result = format!("Filing Fee: ₹{}", fee);
+    }
+
+    fn calc_emi(&mut self) {
+        let p = self.emi_p.parse::<f64>().unwrap_or(0.0);
+        let r = self.emi_r.parse::<f64>().unwrap_or(0.0) / 1200.0;
+        let n = self.emi_n.parse::<f64>().unwrap_or(0.0) * 12.0;
+        let emi = p * r * (1.0 + r).powf(n) / ((1.0 + r).powf(n) - 1.0);
+        self.emi_result = format!("Monthly EMI: ₹{:.2}", emi);
+    }
+
+    fn calc_burn(&mut self) {
+        let c = self.burn_cash.parse::<f64>().unwrap_or(0.0);
+        let s = self.burn_spend.parse::<f64>().unwrap_or(1.0);
+        self.burn_result = format!("Runway: {:.1} months", c / s);
+    }
+
+    fn calc_si(&mut self) {
+        let p = self.si_p.parse::<f64>().unwrap_or(0.0);
+        let r = self.si_r.parse::<f64>().unwrap_or(0.0);
+        let t = self.si_t.parse::<f64>().unwrap_or(0.0);
+        self.si_result = format!("Interest: ₹{:.2}", (p * r * t) / 100.0);
+    }
+    
+    fn calc_tds_int(&mut self) {
+        let a = self.tds_amt.parse::<f64>().unwrap_or(0.0);
+        let m = self.tds_months.parse::<f64>().unwrap_or(0.0);
+        self.tds_result = format!("Interest (1.5%): ₹{:.2}", a * 0.015 * m);
+    }
+    
+    fn calc_cagr(&mut self) {
+        let s = self.cagr_start.parse::<f64>().unwrap_or(1.0);
+        let e = self.cagr_end.parse::<f64>().unwrap_or(1.0);
+        let y = self.cagr_yrs.parse::<f64>().unwrap_or(1.0);
+        let cagr = (e / s).powf(1.0 / y) - 1.0;
+        self.cagr_result = format!("CAGR: {:.2}%", cagr * 100.0);
+    }
+
+    fn calc_be(&mut self) {
+        let f = self.be_fixed.parse::<f64>().unwrap_or(0.0);
+        let p = self.be_price.parse::<f64>().unwrap_or(1.0);
+        let v = self.be_var.parse::<f64>().unwrap_or(0.0);
+        self.be_result = format!("Break Even: {:.0} units", f / (p - v));
+    }
 }
 
 // ============================================================================
@@ -366,17 +483,16 @@ impl eframe::App for PratyakshApp {
                     ui.add_space(50.0);
                     ui.heading(egui::RichText::new("PRATYAKSH AI").size(40.0).strong().color(COLOR_ACCENT));
                     ui.add_space(20.0);
-                    ui.label("END USER LICENSE AGREEMENT");
+                    ui.label(egui::RichText::new("END USER LICENSE AGREEMENT").strong());
                     ui.add_space(10.0);
                     ui.separator();
-                    ui.add_space(10.0);
+                    ui.add_space(20.0);
                     ui.label("By using this software, you agree that PratyakshAI is a decision support tool.");
                     ui.label("Professional judgment must be exercised. We are not liable for tax penalties.");
+                    ui.label("This license is strictly for the authorized user/firm only.");
                     ui.add_space(30.0);
                     if ui.button("I ACCEPT & CONTINUE").clicked() {
-                        self.license_accepted = true;
-                        self.current_page = Page::Dashboard;
-                        self.status_msg = "License Accepted. System Active.".into();
+                        self.accept_license();
                     }
                 });
             });
@@ -438,38 +554,62 @@ impl eframe::App for PratyakshApp {
                         });
                         ui.end_row();
                     });
+                    
+                    ui.add_space(20.0);
+                    ui.heading("Client Management");
+                    ui.horizontal(|ui| {
+                         ui.label("Name:"); ui.text_edit_singleline(&mut self.new_client_name);
+                         ui.label("City:"); ui.text_edit_singleline(&mut self.new_client_city);
+                         if ui.button("Add Client").clicked() { self.add_client(); }
+                    });
                 },
                 Page::Tools => {
                     ui.heading("Smart Tools Library");
                     ui.separator();
                     
                     egui::ScrollArea::vertical().show(ui, |ui| {
-                        ui.label("TAXATION:");
-                        if tool_btn(ui, "Tax Regime Analyzer", self.active_tool == ActiveTool::TaxRegime).clicked() { self.active_tool = ActiveTool::TaxRegime; }
-                        if tool_btn(ui, "Crypto Tax (115BBH)", self.active_tool == ActiveTool::CryptoTax).clicked() { self.active_tool = ActiveTool::CryptoTax; }
-                        if tool_btn(ui, "HRA Calculator", self.active_tool == ActiveTool::HraCalc).clicked() { self.active_tool = ActiveTool::HraCalc; }
-                        if tool_btn(ui, "Advance Tax", self.active_tool == ActiveTool::AdvanceTax).clicked() { self.active_tool = ActiveTool::AdvanceTax; }
-                        if tool_btn(ui, "Angel Tax", self.active_tool == ActiveTool::AngelTax).clicked() { self.active_tool = ActiveTool::AngelTax; }
-                        if tool_btn(ui, "Buyback Tax", self.active_tool == ActiveTool::BuybackTax).clicked() { self.active_tool = ActiveTool::BuybackTax; }
+                        ui.label(egui::RichText::new("TAXATION & FINANCE").strong().color(COLOR_ACCENT));
+                        ui.horizontal_wrapped(|ui| {
+                            if tool_btn(ui, "Tax Regime", self.active_tool == ActiveTool::TaxRegime).clicked() { self.active_tool = ActiveTool::TaxRegime; }
+                            if tool_btn(ui, "Crypto Tax", self.active_tool == ActiveTool::CryptoTax).clicked() { self.active_tool = ActiveTool::CryptoTax; }
+                            if tool_btn(ui, "HRA Calc", self.active_tool == ActiveTool::HraCalc).clicked() { self.active_tool = ActiveTool::HraCalc; }
+                            if tool_btn(ui, "Advance Tax", self.active_tool == ActiveTool::AdvanceTax).clicked() { self.active_tool = ActiveTool::AdvanceTax; }
+                            if tool_btn(ui, "Angel Tax", self.active_tool == ActiveTool::AngelTax).clicked() { self.active_tool = ActiveTool::AngelTax; }
+                            if tool_btn(ui, "Buyback Tax", self.active_tool == ActiveTool::BuybackTax).clicked() { self.active_tool = ActiveTool::BuybackTax; }
+                            if tool_btn(ui, "GST Interest", self.active_tool == ActiveTool::GstInterest).clicked() { self.active_tool = ActiveTool::GstInterest; }
+                            if tool_btn(ui, "Depreciation", self.active_tool == ActiveTool::DepreciationCalc).clicked() { self.active_tool = ActiveTool::DepreciationCalc; }
+                            if tool_btn(ui, "Cap Gains", self.active_tool == ActiveTool::CapitalGains).clicked() { self.active_tool = ActiveTool::CapitalGains; }
+                            if tool_btn(ui, "TDS Interest", self.active_tool == ActiveTool::TdsInterest).clicked() { self.active_tool = ActiveTool::TdsInterest; }
+                        });
                         
                         ui.add_space(10.0);
-                        ui.label("COMPLIANCE:");
-                        if tool_btn(ui, "MCA Predictor", self.active_tool == ActiveTool::McaPredictor).clicked() { self.active_tool = ActiveTool::McaPredictor; }
-                        if tool_btn(ui, "Board Risk", self.active_tool == ActiveTool::BoardRisk).clicked() { self.active_tool = ActiveTool::BoardRisk; }
-                        if tool_btn(ui, "PMLA Scanner", self.active_tool == ActiveTool::PmlaScanner).clicked() { self.active_tool = ActiveTool::PmlaScanner; }
-                        if tool_btn(ui, "Shell Co. Risk", self.active_tool == ActiveTool::ShellRisk).clicked() { self.active_tool = ActiveTool::ShellRisk; }
-                        if tool_btn(ui, "ESG Applicability", self.active_tool == ActiveTool::EsgCheck).clicked() { self.active_tool = ActiveTool::EsgCheck; }
-                        if tool_btn(ui, "UDIN Validator", self.active_tool == ActiveTool::UdinValid).clicked() { self.active_tool = ActiveTool::UdinValid; }
-                        if tool_btn(ui, "Audit Rotation", self.active_tool == ActiveTool::AuditRot).clicked() { self.active_tool = ActiveTool::AuditRot; }
-                        if tool_btn(ui, "Export Tracker", self.active_tool == ActiveTool::ExportTrack).clicked() { self.active_tool = ActiveTool::ExportTrack; }
+                        ui.label(egui::RichText::new("COMPLIANCE & LEGAL").strong().color(COLOR_ACCENT));
+                        ui.horizontal_wrapped(|ui| {
+                            if tool_btn(ui, "MCA Predictor", self.active_tool == ActiveTool::McaPredictor).clicked() { self.active_tool = ActiveTool::McaPredictor; }
+                            if tool_btn(ui, "Board Risk", self.active_tool == ActiveTool::BoardRisk).clicked() { self.active_tool = ActiveTool::BoardRisk; }
+                            if tool_btn(ui, "PMLA Scanner", self.active_tool == ActiveTool::PmlaScanner).clicked() { self.active_tool = ActiveTool::PmlaScanner; }
+                            if tool_btn(ui, "Shell Co. Risk", self.active_tool == ActiveTool::ShellRisk).clicked() { self.active_tool = ActiveTool::ShellRisk; }
+                            if tool_btn(ui, "ESG Check", self.active_tool == ActiveTool::EsgCheck).clicked() { self.active_tool = ActiveTool::EsgCheck; }
+                            if tool_btn(ui, "UDIN Valid", self.active_tool == ActiveTool::UdinValid).clicked() { self.active_tool = ActiveTool::UdinValid; }
+                            if tool_btn(ui, "Audit Rotation", self.active_tool == ActiveTool::AuditRot).clicked() { self.active_tool = ActiveTool::AuditRot; }
+                            if tool_btn(ui, "Export Tracker", self.active_tool == ActiveTool::ExportTrack).clicked() { self.active_tool = ActiveTool::ExportTrack; }
+                            if tool_btn(ui, "LLP Fee", self.active_tool == ActiveTool::LlpFee).clicked() { self.active_tool = ActiveTool::LlpFee; }
+                        });
 
                         ui.add_space(10.0);
-                        ui.label("FINANCE:");
-                        if tool_btn(ui, "MSME 43B(h)", self.active_tool == ActiveTool::MsmeCalc).clicked() { self.active_tool = ActiveTool::MsmeCalc; }
-                        if tool_btn(ui, "Gratuity", self.active_tool == ActiveTool::GratuityCalc).clicked() { self.active_tool = ActiveTool::GratuityCalc; }
-                        if tool_btn(ui, "Lease Liability", self.active_tool == ActiveTool::LeaseCalc).clicked() { self.active_tool = ActiveTool::LeaseCalc; }
-                        if tool_btn(ui, "Net Worth", self.active_tool == ActiveTool::NetWorth).clicked() { self.active_tool = ActiveTool::NetWorth; }
-                        if tool_btn(ui, "Partnership Diss.", self.active_tool == ActiveTool::PartnerDiss).clicked() { self.active_tool = ActiveTool::PartnerDiss; }
+                        ui.label(egui::RichText::new("BUSINESS UTILS").strong().color(COLOR_ACCENT));
+                        ui.horizontal_wrapped(|ui| {
+                            if tool_btn(ui, "MSME 43B(h)", self.active_tool == ActiveTool::MsmeCalc).clicked() { self.active_tool = ActiveTool::MsmeCalc; }
+                            if tool_btn(ui, "Gratuity", self.active_tool == ActiveTool::GratuityCalc).clicked() { self.active_tool = ActiveTool::GratuityCalc; }
+                            if tool_btn(ui, "Lease Liab", self.active_tool == ActiveTool::LeaseCalc).clicked() { self.active_tool = ActiveTool::LeaseCalc; }
+                            if tool_btn(ui, "Net Worth", self.active_tool == ActiveTool::NetWorth).clicked() { self.active_tool = ActiveTool::NetWorth; }
+                            if tool_btn(ui, "Partner Diss.", self.active_tool == ActiveTool::PartnerDiss).clicked() { self.active_tool = ActiveTool::PartnerDiss; }
+                            if tool_btn(ui, "EMI Calc", self.active_tool == ActiveTool::EmiCalc).clicked() { self.active_tool = ActiveTool::EmiCalc; }
+                            if tool_btn(ui, "Burn Rate", self.active_tool == ActiveTool::BurnRate).clicked() { self.active_tool = ActiveTool::BurnRate; }
+                            if tool_btn(ui, "Simple Int.", self.active_tool == ActiveTool::SimpleInt).clicked() { self.active_tool = ActiveTool::SimpleInt; }
+                            if tool_btn(ui, "CAGR", self.active_tool == ActiveTool::CagrCalc).clicked() { self.active_tool = ActiveTool::CagrCalc; }
+                            if tool_btn(ui, "Break Even", self.active_tool == ActiveTool::BreakEven).clicked() { self.active_tool = ActiveTool::BreakEven; }
+                        });
 
                         ui.add_space(20.0);
                         ui.separator();
@@ -481,6 +621,102 @@ impl eframe::App for PratyakshApp {
                                 ui.horizontal(|ui| { ui.label("Deductions:"); ui.text_edit_singleline(&mut self.tax_ded); });
                                 if ui.button("Compare").clicked() { self.calc_tax_regime(); }
                                 ui.label(&self.tax_result);
+                            },
+                            ActiveTool::MsmeCalc => {
+                                ui.heading("MSME 43B(h)");
+                                ui.horizontal(|ui| { ui.label("Amt:"); ui.text_edit_singleline(&mut self.msme_amt); });
+                                ui.horizontal(|ui| { ui.label("Inv Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_inv_date)); });
+                                ui.horizontal(|ui| { ui.label("Pay Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_pay_date)); });
+                                if ui.button("Check").clicked() { self.calc_msme(); }
+                                ui.label(&self.msme_result);
+                            },
+                            ActiveTool::GratuityCalc => {
+                                ui.heading("Gratuity");
+                                ui.horizontal(|ui| { ui.label("Basic + DA:"); ui.text_edit_singleline(&mut self.grat_sal); });
+                                ui.horizontal(|ui| { ui.label("Years:"); ui.text_edit_singleline(&mut self.grat_years); });
+                                if ui.button("Calc").clicked() { self.calc_gratuity(); }
+                                ui.label(&self.grat_result);
+                            },
+                            ActiveTool::PenaltyCalc => {
+                                ui.heading("Penalty");
+                                ui.horizontal(|ui| { ui.label("Days Delayed:"); ui.text_edit_singleline(&mut self.pen_days); });
+                                ui.horizontal(|ui| { ui.label("Form:"); ui.text_edit_singleline(&mut self.pen_filing_type); });
+                                if ui.button("Calc").clicked() { self.calc_penalty(); }
+                                ui.label(&self.pen_result);
+                            },
+                            ActiveTool::GstInterest => {
+                                ui.heading("GST Interest (Sec 50)");
+                                ui.horizontal(|ui| { ui.label("Tax Amt:"); ui.text_edit_singleline(&mut self.gst_tax); });
+                                ui.horizontal(|ui| { ui.label("Days Late:"); ui.text_edit_singleline(&mut self.gst_days); });
+                                if ui.button("Calc").clicked() { self.calc_gst_int(); }
+                                ui.label(&self.gst_result);
+                            },
+                            ActiveTool::DepreciationCalc => {
+                                ui.heading("Depreciation (WDV)");
+                                ui.horizontal(|ui| { ui.label("Cost:"); ui.text_edit_singleline(&mut self.dep_cost); });
+                                ui.horizontal(|ui| { ui.label("Rate (%):"); ui.text_edit_singleline(&mut self.dep_rate); });
+                                if ui.button("Calc").clicked() { self.calc_dep(); }
+                                ui.label(&self.dep_result);
+                            },
+                            ActiveTool::CapitalGains => {
+                                ui.heading("Indexed Cost");
+                                ui.horizontal(|ui| { ui.label("Cost:"); ui.text_edit_singleline(&mut self.cg_cost); });
+                                ui.horizontal(|ui| { ui.label("CII Year 1:"); ui.text_edit_singleline(&mut self.cg_idx1); });
+                                ui.horizontal(|ui| { ui.label("CII Year 2:"); ui.text_edit_singleline(&mut self.cg_idx2); });
+                                if ui.button("Calc").clicked() { self.calc_cg(); }
+                                ui.label(&self.cg_result);
+                            },
+                            ActiveTool::LlpFee => {
+                                ui.heading("LLP Filing Fee");
+                                ui.horizontal(|ui| { ui.label("Contribution:"); ui.text_edit_singleline(&mut self.llp_contrib); });
+                                if ui.button("Calc").clicked() { self.calc_llp(); }
+                                ui.label(&self.llp_result);
+                            },
+                            ActiveTool::EmiCalc => {
+                                ui.heading("Loan EMI");
+                                ui.horizontal(|ui| { ui.label("P:"); ui.text_edit_singleline(&mut self.emi_p); });
+                                ui.horizontal(|ui| { ui.label("R%:"); ui.text_edit_singleline(&mut self.emi_r); });
+                                ui.horizontal(|ui| { ui.label("Yrs:"); ui.text_edit_singleline(&mut self.emi_n); });
+                                if ui.button("Calc").clicked() { self.calc_emi(); }
+                                ui.label(&self.emi_result);
+                            },
+                            ActiveTool::BurnRate => {
+                                ui.heading("Startup Runway");
+                                ui.horizontal(|ui| { ui.label("Cash:"); ui.text_edit_singleline(&mut self.burn_cash); });
+                                ui.horizontal(|ui| { ui.label("Monthly Spend:"); ui.text_edit_singleline(&mut self.burn_spend); });
+                                if ui.button("Calc").clicked() { self.calc_burn(); }
+                                ui.label(&self.burn_result);
+                            },
+                            ActiveTool::SimpleInt => {
+                                ui.heading("Simple Interest");
+                                ui.horizontal(|ui| { ui.label("P:"); ui.text_edit_singleline(&mut self.si_p); });
+                                ui.horizontal(|ui| { ui.label("R%:"); ui.text_edit_singleline(&mut self.si_r); });
+                                ui.horizontal(|ui| { ui.label("T:"); ui.text_edit_singleline(&mut self.si_t); });
+                                if ui.button("Calc").clicked() { self.calc_si(); }
+                                ui.label(&self.si_result);
+                            },
+                            ActiveTool::TdsInterest => {
+                                ui.heading("TDS Interest");
+                                ui.horizontal(|ui| { ui.label("TDS Amt:"); ui.text_edit_singleline(&mut self.tds_amt); });
+                                ui.horizontal(|ui| { ui.label("Months Late:"); ui.text_edit_singleline(&mut self.tds_months); });
+                                if ui.button("Calc").clicked() { self.calc_tds_int(); }
+                                ui.label(&self.tds_result);
+                            },
+                            ActiveTool::CagrCalc => {
+                                ui.heading("CAGR Calculator");
+                                ui.horizontal(|ui| { ui.label("Start Val:"); ui.text_edit_singleline(&mut self.cagr_start); });
+                                ui.horizontal(|ui| { ui.label("End Val:"); ui.text_edit_singleline(&mut self.cagr_end); });
+                                ui.horizontal(|ui| { ui.label("Years:"); ui.text_edit_singleline(&mut self.cagr_yrs); });
+                                if ui.button("Calc").clicked() { self.calc_cagr(); }
+                                ui.label(&self.cagr_result);
+                            },
+                            ActiveTool::BreakEven => {
+                                ui.heading("Break Even Analysis");
+                                ui.horizontal(|ui| { ui.label("Fixed Cost:"); ui.text_edit_singleline(&mut self.be_fixed); });
+                                ui.horizontal(|ui| { ui.label("Unit Price:"); ui.text_edit_singleline(&mut self.be_price); });
+                                ui.horizontal(|ui| { ui.label("Var Cost:"); ui.text_edit_singleline(&mut self.be_var); });
+                                if ui.button("Calc").clicked() { self.calc_be(); }
+                                ui.label(&self.be_result);
                             },
                             ActiveTool::CryptoTax => {
                                 ui.heading("VDA / Crypto Tax");
@@ -514,28 +750,6 @@ impl eframe::App for PratyakshApp {
                                 ui.horizontal(|ui| { ui.label("Assets:"); ui.text_edit_singleline(&mut self.shell_ast); });
                                 if ui.button("Analyze").clicked() { self.calc_shell(); }
                                 ui.label(&self.shell_result);
-                            },
-                            ActiveTool::MsmeCalc => {
-                                ui.heading("MSME 43B(h)");
-                                ui.horizontal(|ui| { ui.label("Amt:"); ui.text_edit_singleline(&mut self.msme_amt); });
-                                ui.horizontal(|ui| { ui.label("Inv Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_inv_date)); });
-                                ui.horizontal(|ui| { ui.label("Pay Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_pay_date)); });
-                                if ui.button("Check").clicked() { self.calc_msme(); }
-                                ui.label(&self.msme_result);
-                            },
-                            ActiveTool::GratuityCalc => {
-                                ui.heading("Gratuity");
-                                ui.horizontal(|ui| { ui.label("Basic + DA:"); ui.text_edit_singleline(&mut self.grat_sal); });
-                                ui.horizontal(|ui| { ui.label("Years:"); ui.text_edit_singleline(&mut self.grat_yrs); });
-                                if ui.button("Calc").clicked() { self.calc_gratuity(); }
-                                ui.label(&self.grat_result);
-                            },
-                            ActiveTool::PenaltyCalc => {
-                                ui.heading("Penalty");
-                                ui.horizontal(|ui| { ui.label("Days Delayed:"); ui.text_edit_singleline(&mut self.pen_days); });
-                                ui.horizontal(|ui| { ui.label("Form:"); ui.text_edit_singleline(&mut self.pen_filing_type); });
-                                if ui.button("Calc").clicked() { self.calc_penalty(); }
-                                ui.label(&self.pen_result);
                             },
                             ActiveTool::AdvanceTax => {
                                 ui.heading("Advance Tax");
@@ -609,6 +823,19 @@ impl eframe::App for PratyakshApp {
                                 ui.horizontal(|ui| { ui.label("Price:"); ui.text_edit_singleline(&mut self.buy_price); });
                                 if ui.button("Calculate").clicked() { self.calc_buyback(); }
                                 ui.label(&self.buy_result);
+                            },
+                            ActiveTool::TrustScore => {
+                                ui.heading("Trust Score");
+                                ui.horizontal(|ui| { ui.label("GST Turnover:"); ui.text_edit_singleline(&mut self.trust_gst); });
+                                ui.horizontal(|ui| { ui.label("Bank Credits:"); ui.text_edit_singleline(&mut self.trust_bank); });
+                                if ui.button("Calculate").clicked() { self.calc_trust(); }
+                                ui.label(&self.trust_result);
+                            },
+                            ActiveTool::RegulatorNotes => {
+                                ui.heading("Regulator Notes");
+                                ui.horizontal(|ui| { ui.label("Officer ID:"); ui.text_edit_singleline(&mut self.reg_id); });
+                                if ui.button("Search").clicked() { self.calc_regulator(); }
+                                ui.label(&self.reg_note);
                             },
                             _ => { ui.label("Select a tool from the list above."); }
                         }
