@@ -2,10 +2,9 @@
 
 use eframe::egui;
 use rusqlite::{params, Connection};
-use chrono::{NaiveDate, Local, Datelike};
+use chrono::{NaiveDate, Local};
 use std::sync::{Arc, Mutex};
 use sha2::{Sha256, Digest};
-use std::collections::HashMap;
 
 // ============================================================================
 //  1. ASSETS & ICONS (SVG Byte Literals)
@@ -30,6 +29,7 @@ struct Client {
     flags: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct EvidenceLog {
     id: i32,
@@ -45,7 +45,6 @@ enum Page {
     ClientIntegrity,
     EvidenceLocker,
     SmartTools,
-    Settings
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -53,7 +52,6 @@ enum ToolType {
     MsmeCalc,
     Gratuity,
     Penalty,
-    TaxRegime,
     None
 }
 
@@ -267,7 +265,6 @@ impl eframe::App for PratyakshApp {
                 Page::ClientIntegrity => self.render_clients(ui),
                 Page::EvidenceLocker => self.render_evidence(ui),
                 Page::SmartTools => self.render_tools(ui),
-                _ => {}
             }
         });
     }
@@ -294,6 +291,7 @@ impl PratyakshApp {
             if ui.button("Add Client").clicked() { self.add_client(); }
         });
         ui.add_space(20.0);
+        // FIX: Replaced ui.grid shorthand with egui::Grid::new()
         egui::Grid::new("clients").striped(true).min_col_width(100.0).show(ui, |ui| {
             ui.strong("Name"); ui.strong("City"); ui.strong("Trust Score"); ui.end_row();
             for c in &self.clients {
@@ -340,7 +338,8 @@ impl PratyakshApp {
             match self.active_tool {
                 ToolType::MsmeCalc => {
                     ui.heading("MSME Interest Calculator");
-                    ui.grid("msme", |ui| {
+                    // FIX: Replaced ui.grid shorthand
+                    egui::Grid::new("msme").spacing([20.0, 10.0]).show(ui, |ui| {
                         ui.label("Invoice Amt:"); ui.text_edit_singleline(&mut self.msme_amount); ui.end_row();
                         ui.label("Invoice Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_inv_date)); ui.end_row();
                         ui.label("Payment Date:"); ui.add(egui_extras::DatePickerButton::new(&mut self.msme_pay_date)); ui.end_row();
