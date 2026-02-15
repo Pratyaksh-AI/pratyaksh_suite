@@ -1,11 +1,11 @@
 [package]
 name = "pratyaksh_desktop"
-version = "6.0.0"
+version = "7.0.0"
 edition = "2021"
 
 [dependencies]
 eframe = "0.26"
-egui_extras = { version = "0.26", features = ["all_loaders"] }
+egui_extras = { version = "0.26", features = ["all_loaders", "datepicker"] }
 image = { version = "0.24", features = ["jpeg", "png"] }
 rusqlite = { version = "0.31", features = ["bundled"] }
 chrono = { version = "0.4", features = ["serde"] }
