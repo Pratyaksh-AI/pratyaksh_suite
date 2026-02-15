@@ -37,7 +37,8 @@ export const Navbar = ({ setPage, mobileMenuOpen, setMobileMenuOpen }) => (
 
       <div className="hidden md:flex flex-1 justify-end items-center px-6 gap-6 text-sm">
         <NavLink label="Modules" target="city_risk" setPage={setPage} />
-        <NavLink label="Tools" target="mca_predictor" setPage={setPage} />
+        {/* UPDATED: Points to the main Tools Catalog now */}
+        <NavLink label="Tools" target="tools" setPage={setPage} />
         <NavLink label="Pricing" target="pricing" setPage={setPage} />
         <NavLink label="Resources" target="documentation" setPage={setPage} />
         <NavLink label="Company" target="about" setPage={setPage} />
@@ -64,7 +65,8 @@ export const Navbar = ({ setPage, mobileMenuOpen, setMobileMenuOpen }) => (
         <div className="flex flex-col gap-2">
           <NavLink label="Home" target="home" setPage={setPage} mobile />
           <NavLink label="Modules" target="city_risk" setPage={setPage} mobile />
-          <NavLink label="Tools" target="mca_predictor" setPage={setPage} mobile />
+          {/* UPDATED: Mobile link also points to main Tools Catalog */}
+          <NavLink label="Tools" target="tools" setPage={setPage} mobile />
           <NavLink label="Pricing" target="pricing" setPage={setPage} mobile />
           <NavLink label="Download" target="download" setPage={setPage} mobile />
           <NavLink label="About" target="about" setPage={setPage} mobile />
