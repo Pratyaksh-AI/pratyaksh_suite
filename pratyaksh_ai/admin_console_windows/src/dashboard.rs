@@ -80,7 +80,7 @@ fn render_detail_view(
     ui.heading("Transaction Details");
     ui.add_space(20.0);
 
-    let grid_clr = egui::Color32::from_rgb(40, 40, 40);
+    let _grid_clr = egui::Color32::from_rgb(40, 40, 40);
     
     egui::Grid::new("details").spacing([40.0, 15.0]).show(ui, |ui| {
         ui.label("User Email:"); ui.label(egui::RichText::new(&req.email).strong().size(16.0)); ui.end_row();

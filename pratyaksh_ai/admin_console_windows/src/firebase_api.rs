@@ -73,7 +73,8 @@ impl FirebaseClient {
 
         // B. Grant Access (Create record in user_access collection)
         // This effectively unlocks Download.jsx
-        let access_url = format!("{}/artifacts/{}/public/data/user_access?documentId={}", self.base_url, APP_ID_PATH, req.user_id);
+        // PREFIXED WITH UNDERSCORE TO FIX WARNING
+        let _access_url = format!("{}/artifacts/{}/public/data/user_access?documentId={}", self.base_url, APP_ID_PATH, req.user_id);
         
         let access_body = json!({
             "fields": {

@@ -24,12 +24,15 @@ pub struct PaymentRequest {
     pub doc_path: String, 
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FirestoreDocument {
     pub name: String,
     pub fields: PaymentFields,
 }
 
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PaymentFields {
     pub userId: StringValue,
@@ -41,17 +44,22 @@ pub struct PaymentFields {
     pub device: StringValue,
 }
 
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StringValue {
     pub stringValue: String,
 }
 
 // User Access Schema (For unlocking Download.jsx)
+#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct AccessGrant {
     pub fields: AccessFields,
 }
 
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 #[derive(Serialize)]
 pub struct AccessFields {
     pub canDownload: BooleanValue,
@@ -59,6 +67,8 @@ pub struct AccessFields {
     pub grantedAt: StringValue,
 }
 
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 #[derive(Serialize)]
 pub struct BooleanValue {
     pub booleanValue: bool,
