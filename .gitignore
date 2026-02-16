@@ -1,0 +1,26 @@
+Rust Build Artifacts (Heavy)
+
+target/
+**/*.rs.bk
+
+Web Node Modules
+
+node_modules/
+dist/
+.env
+
+Android Build Artifacts
+
+.gradle/
+local.properties
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+Executables (Do not commit these, users should download them from releases)
+
+*.exe
+*.dll
+*.apk
+*.ap_
