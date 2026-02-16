@@ -36,7 +36,6 @@ impl FirebaseClient {
         if let Some(docs) = json.get("documents").and_then(|d| d.as_array()) {
             for doc in docs {
                 if let Some(fields) = doc.get("fields") {
-                    // Manual extraction to handle Firestore's verbose JSON format
                     let status = fields.get("status").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("");
                     
                     if status == "pending" {
@@ -72,8 +71,6 @@ impl FirebaseClient {
         self.client.patch(&payment_update_url).json(&body).send().map_err(|e| e.to_string())?;
 
         // B. Grant Access (Create record in user_access collection)
-        // This effectively unlocks Download.jsx
-        // PREFIXED WITH UNDERSCORE TO FIX WARNING
         let _access_url = format!("{}/artifacts/{}/public/data/user_access?documentId={}", self.base_url, APP_ID_PATH, req.user_id);
         
         let access_body = json!({
@@ -84,7 +81,6 @@ impl FirebaseClient {
             }
         });
 
-        // Use POST with documentId, or PATCH if it might exist
         let patch_access_url = format!("{}/artifacts/{}/public/data/user_access/{}", self.base_url, APP_ID_PATH, req.user_id);
         self.client.patch(&patch_access_url).json(&access_body).send().map_err(|e| e.to_string())?;
 
@@ -101,5 +97,68 @@ impl FirebaseClient {
         });
         self.client.patch(&url).json(&body).send().map_err(|e| e.to_string())?;
         Ok(())
+    }
+
+    // 4. FETCH ALL PAYMENTS (For Transaction History)
+    pub fn fetch_all_payments(&self) -> Result<Vec<PaymentRequest>, String> {
+        let url = format!("{}/artifacts/{}/public/data/payments", self.base_url, APP_ID_PATH);
+        let resp = self.client.get(&url).send().map_err(|e| e.to_string())?;
+        
+        if !resp.status().is_success() {
+            return Err(format!("API Error: {}", resp.status()));
+        }
+
+        let json: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+        let mut history = Vec::new();
+        
+        if let Some(docs) = json.get("documents").and_then(|d| d.as_array()) {
+            for doc in docs {
+                if let Some(fields) = doc.get("fields") {
+                    let name = doc.get("name").and_then(|s| s.as_str()).unwrap_or("");
+                    
+                    history.push(PaymentRequest {
+                        user_id: fields.get("userId").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        email: fields.get("userEmail").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        amount: fields.get("amount").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        plan: fields.get("plan").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        status: fields.get("status").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        txn_id: fields.get("txnId").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        device: fields.get("device").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        doc_path: name.to_string(),
+                    });
+                }
+            }
+        }
+        Ok(history)
+    }
+
+    // 5. FETCH USER ACCESS (List of Approved Users)
+    pub fn fetch_user_access(&self) -> Result<Vec<UserAccessRecord>, String> {
+        let url = format!("{}/artifacts/{}/public/data/user_access", self.base_url, APP_ID_PATH);
+        let resp = self.client.get(&url).send().map_err(|e| e.to_string())?;
+        
+        if !resp.status().is_success() {
+            return Err(format!("API Error: {}", resp.status()));
+        }
+
+        let json: serde_json::Value = resp.json().map_err(|e| e.to_string())?;
+        let mut access_list = Vec::new();
+        
+        if let Some(docs) = json.get("documents").and_then(|d| d.as_array()) {
+            for doc in docs {
+                if let Some(fields) = doc.get("fields") {
+                    let name = doc.get("name").and_then(|s| s.as_str()).unwrap_or("");
+                    let uid = name.split('/').last().unwrap_or("").to_string();
+
+                    access_list.push(UserAccessRecord {
+                        user_id: uid,
+                        plan: fields.get("plan").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        granted_at: fields.get("grantedAt").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("").to_string(),
+                        can_download: fields.get("canDownload").and_then(|v| v.get("booleanValue")).and_then(|b| b.as_bool()).unwrap_or(false),
+                    });
+                }
+            }
+        }
+        Ok(access_list)
     }
 }

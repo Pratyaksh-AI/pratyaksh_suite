@@ -73,3 +73,27 @@ pub struct AccessFields {
 pub struct BooleanValue {
     pub booleanValue: bool,
 }
+
+// --- NEW DATA STRUCTURES ---
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserAccessRecord {
+    pub user_id: String,
+    pub plan: String,
+    pub granted_at: String,
+    pub can_download: bool,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct DashboardStats {
+    pub total_pending: usize,
+    pub total_approved: usize,
+    pub total_denied: usize,
+    pub total_revenue: f64, // Calculated from parsed amount strings
+    pub currency_symbol: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransactionHistory {
+    pub requests: Vec<PaymentRequest>,
+}
