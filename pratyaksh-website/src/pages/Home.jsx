@@ -39,6 +39,16 @@ const Hero = ({ setPage }) => (
                    <div key={i} className="flex-1 bg-[#111111]" style={{height: `${h}%`, opacity: 0.2 + (i*0.05)}}></div>
                  ))}
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                 <div className="bg-white p-3 rounded border border-gray-200">
+                    <div className="text-xs text-gray-500">Penalty Est.</div>
+                    <div className="font-mono font-bold">₹1,24,000</div>
+                 </div>
+                 <div className="bg-white p-3 rounded border border-gray-200">
+                    <div className="text-xs text-gray-500">AO Strictness</div>
+                    <div className="font-mono font-bold">9.2/10</div>
+                 </div>
+              </div>
            </div>
         </div>
       </div>
