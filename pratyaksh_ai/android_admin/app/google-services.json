@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "148918790527",
+    "project_id": "pratyakshai",
+    "storage_bucket": "pratyakshai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:148918790527:android:f7ee18146c52fc67e4524a",
+        "android_client_info": {
+          "package_name": "com.pratyaksh_ai.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCXZbA01CKb8txXdmWRkUjjwtEscn0xnP8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
