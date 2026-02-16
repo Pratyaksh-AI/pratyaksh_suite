@@ -4,7 +4,7 @@ use serde_json::json;
 
 // CONFIGURATION (Replace these with your real Project ID if different)
 const PROJECT_ID: &str = "pratyakshai-website"; 
-const APP_ID_PATH: &str = "1:801069212447:web:c8a7f60632744d04ba462a"; // Must match your React AppId
+const APP_ID_PATH: &str = "pratyaksh_ai_suite"; // Must match your React AppId
 
 pub struct FirebaseClient {
     client: Client,
@@ -20,6 +20,7 @@ impl FirebaseClient {
     }
 
     // 1. FETCH PENDING PAYMENTS
+    #[allow(dead_code)]
     pub fn fetch_pending(&self) -> Result<Vec<PaymentRequest>, String> {
         let url = format!("{}/artifacts/{}/public/data/payments", self.base_url, APP_ID_PATH);
         
@@ -36,6 +37,7 @@ impl FirebaseClient {
         if let Some(docs) = json.get("documents").and_then(|d| d.as_array()) {
             for doc in docs {
                 if let Some(fields) = doc.get("fields") {
+                    // Manual extraction to handle Firestore's verbose JSON format
                     let status = fields.get("status").and_then(|v| v.get("stringValue")).and_then(|s| s.as_str()).unwrap_or("");
                     
                     if status == "pending" {
@@ -71,6 +73,8 @@ impl FirebaseClient {
         self.client.patch(&payment_update_url).json(&body).send().map_err(|e| e.to_string())?;
 
         // B. Grant Access (Create record in user_access collection)
+        // This effectively unlocks Download.jsx
+        // PREFIXED WITH UNDERSCORE TO FIX WARNING
         let _access_url = format!("{}/artifacts/{}/public/data/user_access?documentId={}", self.base_url, APP_ID_PATH, req.user_id);
         
         let access_body = json!({
@@ -81,6 +85,7 @@ impl FirebaseClient {
             }
         });
 
+        // Use POST with documentId, or PATCH if it might exist
         let patch_access_url = format!("{}/artifacts/{}/public/data/user_access/{}", self.base_url, APP_ID_PATH, req.user_id);
         self.client.patch(&patch_access_url).json(&access_body).send().map_err(|e| e.to_string())?;
 

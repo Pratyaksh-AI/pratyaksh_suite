@@ -93,6 +93,7 @@ pub struct DashboardStats {
     pub currency_symbol: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionHistory {
     pub requests: Vec<PaymentRequest>,
