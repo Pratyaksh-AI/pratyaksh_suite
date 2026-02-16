@@ -1,1 +1,0 @@
-# pratyaksh_suite

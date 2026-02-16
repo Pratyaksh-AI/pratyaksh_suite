@@ -1,6 +1,0 @@
-<resources>
-    <style name="Theme.AppCompat.NoActionBar" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/neon_green</item>
-        <item name="android:statusBarColor">@color/black_bg</item>
-    </style>
-</resources>
