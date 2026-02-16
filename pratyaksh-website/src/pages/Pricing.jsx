@@ -64,7 +64,8 @@ export const PricingPage = ({ setPage }) => (
                 <li key={i} className="flex items-center gap-3 text-sm font-medium"><Check size={16} className={tier.highlight ? "text-[#4FF978]" : "text-[#111111]"} />{feat}</li>
               ))}
             </ul>
-            <button onClick={() => setPage('download')} className={`w-full py-4 font-bold text-sm rounded-lg transition-colors ${tier.btnBg} ${tier.btnText} hover:opacity-90`}>Select Plan</button>
+            {/* UPDATED: Route to 'payment' page instead of 'download' */}
+            <button onClick={() => setPage('payment')} className={`w-full py-4 font-bold text-sm rounded-lg transition-colors ${tier.btnBg} ${tier.btnText} hover:opacity-90`}>Choose Plan</button>
           </div>
         ))}
       </div>

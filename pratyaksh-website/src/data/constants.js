@@ -1,6 +1,6 @@
 import { 
   MapPin, Users, Lock, Activity, 
-  FileWarning, ShieldCheck, Book, Shield, // Added Shield here
+  FileWarning, ShieldCheck, Book, Shield, 
   Calculator, Eye, Globe, CheckCircle, RefreshCw, BarChart, DollarSign, Bitcoin, Scale, Clock, Building2, AlertTriangle, Heart, 
   Activity as McaIcon
 } from 'lucide-react';
@@ -122,3 +122,16 @@ export const PRICING_TIERS = [
     btnText: "text-white"
   }
 ];
+
+// --- DATABASE CONFIGURATION ---
+export const DB_PATHS = {
+  // Base Firestore Path Structure
+  // artifacts/{appId}/public/data/{collection}
+  BASE: "artifacts",
+  VISIBILITY: "public",
+  DATA: "data",
+  
+  // Collections
+  COLLECTION_PAYMENTS: "payments",       // Stores transaction requests
+  COLLECTION_USER_ACCESS: "user_access"  // Stores approval status
+};
