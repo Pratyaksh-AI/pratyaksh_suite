@@ -25,9 +25,9 @@ export default function Payment({ user, plan, onPaymentComplete }) {
       await setDoc(paymentRef, {
         userId: user.uid,
         userEmail: email,
-        amount: plan?.price || "₹19,999", // Dynamic based on selected plan
+        amount: plan?.price || "₹19,999",
         plan: plan?.name || "Enterprise Suite",
-        status: "pending", // Critical: This status triggers the Admin Notification
+        status: "pending",
         txnId: txnId,
         createdAt: serverTimestamp(),
         device: "Web Client"
@@ -46,7 +46,7 @@ export default function Payment({ user, plan, onPaymentComplete }) {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert("Copied to clipboard: " + text);
+    alert("Copied: " + text);
   };
 
   return (
@@ -84,78 +84,91 @@ export default function Payment({ user, plan, onPaymentComplete }) {
             <h4 className="text-white font-bold flex items-center gap-2">
               <Globe className="w-4 h-4 text-[#4FF978]" /> Payment Details
             </h4>
-            <p className="text-xs text-gray-500">Please complete the transfer using one of the methods below before confirming.</p>
+            <p className="text-xs text-gray-500">Please complete the transfer using one of the methods below.</p>
 
             {/* UPI Section (India) */}
             <div className="bg-[#1A1A1A] p-5 rounded-xl border border-white/5">
               <div className="flex justify-between items-start mb-4">
-                <div>
+                <div className="flex-1">
                   <span className="text-xs font-bold text-[#4FF978] bg-[#4FF978]/10 px-2 py-1 rounded">🇮🇳 INDIA (UPI)</span>
-                  <div className="mt-2 flex items-center gap-2">
-                     <code className="text-white text-lg">918329004424@waicici</code>
+                  <div className="mt-3 flex items-center gap-2">
+                     <code className="text-white text-lg font-mono">918329004424@waicici</code>
                      <button type="button" onClick={() => copyToClipboard('918329004424@waicici')} className="text-gray-400 hover:text-white"><Copy size={14}/></button>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">Beneficiary: Arun Ammisetty</div>
+                  
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {['PhonePe', 'GPay', 'BHIM', 'WhatsApp Pay'].map(app => (
+                        <div key={app} className="px-2 py-1 bg-white/10 rounded text-[10px] text-gray-300 border border-white/5">{app}</div>
+                    ))}
+                  </div>
                 </div>
-                {/* QR Placeholder */}
-                <div className="w-16 h-16 bg-white p-1 rounded flex items-center justify-center">
-                    <QrCode className="text-black w-full h-full" />
+                
+                {/* UPI QR Image Placeholder */}
+                <div className="w-24 h-24 bg-white p-1 rounded-lg flex items-center justify-center overflow-hidden ml-4">
+                    <img 
+                      src="https://placehold.co/200x200/white/black?text=UPI+QR" 
+                      alt="Scan UPI QR" 
+                      className="w-full h-full object-contain" 
+                    />
                 </div>
-              </div>
-              <div className="flex gap-2 mt-2">
-                {['PhonePe', 'GPay', 'BHIM', 'WhatsApp Pay'].map(app => (
-                    <div key={app} className="px-2 py-1 bg-white/10 rounded text-[10px] text-gray-300">{app}</div>
-                ))}
               </div>
             </div>
 
             {/* International Bank Transfer Section */}
-            <div className="space-y-3">
-               <div className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded w-fit">🌍 INTERNATIONAL WIRE</div>
+            <div className="space-y-4 pt-4">
+               <div className="text-xs font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded w-fit">INTERNATIONAL WIRE</div>
                
                {/* UAE */}
-               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-sm space-y-1">
-                 <div className="font-bold text-white mb-2 flex items-center gap-2">🇦🇪 UAE <span className="text-xs font-normal text-gray-500">(United Arab Emirates)</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Bank:</span> <span className="col-span-2 text-white">Standard Chartered</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Address:</span> <span className="col-span-2">Standard Chartered Tower, Emaar Square Dubai, UAE</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">IBAN:</span> <span className="col-span-2 text-mono text-white">AE550446420010001414704</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">SWIFT:</span> <span className="col-span-2 text-mono text-white">SCBLAEADXXX</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Name:</span> <span className="col-span-2 text-white">Arun Ammisetty</span></div>
+               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-xs space-y-2">
+                 <div className="font-bold text-white text-sm flex items-center gap-2 mb-1">🇦🇪 UAE <span className="font-normal text-gray-500">(United Arab Emirates)</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Bank:</span> <span className="col-span-9 text-white">Standard Chartered</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Address:</span> <span className="col-span-9">Standard Chartered Tower, Emaar Square Dubai, UAE</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">SWIFT:</span> <span className="col-span-9 text-white font-mono">SCBLAEADXXX</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">IBAN:</span> <span className="col-span-9 text-white font-mono">AE550446420010001414704</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Name:</span> <span className="col-span-9 text-white">Arun Ammisetty</span></div>
                </div>
 
                {/* Australia */}
-               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-sm space-y-1">
-                 <div className="font-bold text-white mb-2 flex items-center gap-2">🇦🇺 Australia</div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Bank:</span> <span className="col-span-2 text-white">Citibank</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Address:</span> <span className="col-span-2">2 Park Street, Sydney NSW 2000</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">BSB:</span> <span className="col-span-2 text-mono text-white">248024</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Account:</span> <span className="col-span-2 text-mono text-white">10516966</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Name:</span> <span className="col-span-2 text-white">Arun Ammisetty</span></div>
+               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-xs space-y-2">
+                 <div className="font-bold text-white text-sm flex items-center gap-2 mb-1">🇦🇺 Australia</div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Bank:</span> <span className="col-span-9 text-white">Citibank</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Address:</span> <span className="col-span-9">2 Park Street, Sydney NSW 2000</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">BSB:</span> <span className="col-span-9 text-white font-mono">248024</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Account:</span> <span className="col-span-9 text-white font-mono">10516966</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Name:</span> <span className="col-span-9 text-white">Arun Ammisetty</span></div>
                </div>
 
                {/* Japan */}
-               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-sm space-y-1">
-                 <div className="font-bold text-white mb-2 flex items-center gap-2">🇯🇵 Japan</div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Bank:</span> <span className="col-span-2 text-white">MUFG Bank, Ltd. (0005)</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Branch:</span> <span className="col-span-2">869</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Account:</span> <span className="col-span-2 text-mono text-white">4674430 (Savings)</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Name:</span> <span className="col-span-2 text-white">ﾍﾟｲｵﾆｱ ｼﾞﾔﾊﾟﾝ(ｶ</span></div>
+               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-xs space-y-2">
+                 <div className="font-bold text-white text-sm flex items-center gap-2 mb-1">🇯🇵 Japan</div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Bank:</span> <span className="col-span-9 text-white">MUFG Bank, Ltd. (0005)</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Branch:</span> <span className="col-span-9">869</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Account:</span> <span className="col-span-9 text-white font-mono">4674430 (Savings)</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Name:</span> <span className="col-span-9 text-white">ﾍﾟｲｵﾆｱ ｼﾞﾔﾊﾟﾝ(ｶ</span></div>
                </div>
 
                {/* Eurozone */}
-               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-sm space-y-1">
-                 <div className="font-bold text-white mb-2 flex items-center gap-2">🇪🇺 Eurozone</div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Bank:</span> <span className="col-span-2 text-white">Banking Circle S.A.</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Address:</span> <span className="col-span-2">2, Boulevard de la Foire L-1528 LUXEMBOURG</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">IBAN:</span> <span className="col-span-2 text-mono text-white">LU744080000045726924</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">BIC:</span> <span className="col-span-2 text-mono text-white">BCIRLULL</span></div>
-                 <div className="grid grid-cols-3 gap-2 text-gray-400"><span className="text-gray-600">Name:</span> <span className="col-span-2 text-white">Arun Ammisetty</span></div>
+               <div className="bg-[#1A1A1A] p-4 rounded-xl border border-white/5 text-xs space-y-2">
+                 <div className="font-bold text-white text-sm flex items-center gap-2 mb-1">🇪🇺 Eurozone</div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Bank:</span> <span className="col-span-9 text-white">Banking Circle S.A.</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Address:</span> <span className="col-span-9">2, Boulevard de la Foire L-1528 LUXEMBOURG</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">IBAN:</span> <span className="col-span-9 text-white font-mono">LU744080000045726924</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">BIC:</span> <span className="col-span-9 text-white font-mono">BCIRLULL</span></div>
+                 <div className="grid grid-cols-12 gap-2 text-gray-400"><span className="col-span-3">Name:</span> <span className="col-span-9 text-white">Arun Ammisetty</span></div>
                </div>
                
-               <div className="flex justify-end pt-2">
-                 <div className="flex items-center gap-2 px-3 py-1 bg-white rounded">
-                    <span className="text-black font-bold text-xs">PayPal</span>
-                    <QrCode className="w-4 h-4 text-black"/>
+               {/* PayPal QR Image Placeholder */}
+               <div className="flex justify-end pt-4">
+                 <div className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg">
+                    <span className="text-black font-bold text-xs flex items-center gap-1"><Globe size={12}/> PayPal</span>
+                    <div className="w-20 h-20 bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src="https://placehold.co/200x200/003087/white?text=PayPal+QR" 
+                          alt="Scan PayPal QR" 
+                          className="w-full h-full object-contain" 
+                        />
+                    </div>
                  </div>
                </div>
             </div>
@@ -166,18 +179,18 @@ export default function Payment({ user, plan, onPaymentComplete }) {
             <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-400">Your Registered Email</label>
                 <input 
-                type="email" 
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@firm.com"
-                className="w-full bg-black border border-white/10 text-white p-4 rounded-xl outline-none focus:border-[#4FF978] transition-all"
+                  type="email" 
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@firm.com"
+                  className="w-full bg-black border border-white/10 text-white p-4 rounded-xl outline-none focus:border-[#4FF978] transition-all"
                 />
             </div>
 
             {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm">
-                {error}
+                  {error}
                 </div>
             )}
 
@@ -187,9 +200,9 @@ export default function Payment({ user, plan, onPaymentComplete }) {
                 className="w-full py-4 bg-[#4FF978] hover:bg-[#3DD665] text-black font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isProcessing ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                <>I Have Completed Payment <CheckCircle2 className="w-5 h-5" /></>
+                  <>I Have Completed Payment <CheckCircle2 className="w-5 h-5" /></>
                 )}
             </button>
 
