@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-33:12
-INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-33:12
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-32:12
+INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-32:12
+INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-32:12
+INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:1-32:12
 MERGED from [androidx.databinding:viewbinding:8.2.2] /home/codespace/.gradle/caches/transforms-3/c7f1a85d0aae410b1ecb85c71c834842/transformed/jetified-viewbinding-8.2.2/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.android.material:material:1.11.0] /home/codespace/.gradle/caches/transforms-3/001721c90f5224d8f7ac781e99f9f313/transformed/material-1.11.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/codespace/.gradle/caches/transforms-3/ce1420bcc58098f4ceaec7bf4aedcb67/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
@@ -88,7 +88,6 @@ MERGED from [androidx.print:print:1.0.0] /home/codespace/.gradle/caches/transfor
 MERGED from [io.grpc:grpc-android:1.57.2] /home/codespace/.gradle/caches/transforms-3/57b1f6017b98677fd45117570b87096d/transformed/jetified-grpc-android-1.57.2/AndroidManifest.xml:2:1-9:12
 MERGED from [com.google.firebase:protolite-well-known-types:18.0.0] /home/codespace/.gradle/caches/transforms-3/8c1a64d67511cf563bed7c00be5cfbff/transformed/jetified-protolite-well-known-types-18.0.0/AndroidManifest.xml:2:1-11:12
 	package
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:3:5-37
 		INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml
 	android:versionName
 		INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml
@@ -97,7 +96,7 @@ MERGED from [com.google.firebase:protolite-well-known-types:18.0.0] /home/codesp
 	xmlns:android
 		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:2:11-69
 uses-permission#android.permission.INTERNET
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:5-67
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:4:5-67
 MERGED from [com.google.firebase:firebase-auth:22.3.1] /home/codespace/.gradle/caches/transforms-3/9d36d89873b8f410d699e5afed04dfc8/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:25:5-67
 MERGED from [com.google.firebase:firebase-auth:22.3.1] /home/codespace/.gradle/caches/transforms-3/9d36d89873b8f410d699e5afed04dfc8/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:25:5-67
 MERGED from [com.google.firebase:firebase-firestore:24.10.3] /home/codespace/.gradle/caches/transforms-3/604f2098fa1514ad3a3a1c1c1afb87bc/transformed/jetified-firebase-firestore-24.10.3/AndroidManifest.xml:11:5-67
@@ -119,16 +118,16 @@ MERGED from [com.google.android.gms:play-services-measurement-sdk-api:21.5.1] /h
 MERGED from [com.google.android.datatransport:transport-backend-cct:3.1.8] /home/codespace/.gradle/caches/transforms-3/bcde58cac05414413f51b400cc632333/transformed/jetified-transport-backend-cct-3.1.8/AndroidManifest.xml:25:5-67
 MERGED from [com.google.android.datatransport:transport-backend-cct:3.1.8] /home/codespace/.gradle/caches/transforms-3/bcde58cac05414413f51b400cc632333/transformed/jetified-transport-backend-cct-3.1.8/AndroidManifest.xml:25:5-67
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:22-64
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:4:22-64
 uses-permission#android.permission.POST_NOTIFICATIONS
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:6:5-77
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:5-77
 MERGED from [com.google.firebase:firebase-messaging:23.4.1] /home/codespace/.gradle/caches/transforms-3/530b736c3633b650c9be29654e7af03f/transformed/jetified-firebase-messaging-23.4.1/AndroidManifest.xml:23:5-77
 MERGED from [com.google.firebase:firebase-messaging:23.4.1] /home/codespace/.gradle/caches/transforms-3/530b736c3633b650c9be29654e7af03f/transformed/jetified-firebase-messaging-23.4.1/AndroidManifest.xml:23:5-77
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:6:22-74
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:22-74
 application
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:8:5-32:19
-INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:8:5-32:19
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:7:5-31:19
+INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:7:5-31:19
 MERGED from [com.google.android.material:material:1.11.0] /home/codespace/.gradle/caches/transforms-3/001721c90f5224d8f7ac781e99f9f313/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] /home/codespace/.gradle/caches/transforms-3/001721c90f5224d8f7ac781e99f9f313/transformed/material-1.11.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /home/codespace/.gradle/caches/transforms-3/ce1420bcc58098f4ceaec7bf4aedcb67/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
@@ -206,45 +205,45 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /home/codespace/.gradle/cac
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] /home/codespace/.gradle/caches/transforms-3/c081857d7f682dc459ad4660924c6441/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:13:9-35
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:12:9-35
 	android:label
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:11:9-40
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:10:9-40
 	android:roundIcon
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:12:9-54
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:11:9-54
 	android:icon
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:10:9-43
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:9:9-43
 	android:allowBackup
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:9:9-35
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:8:9-35
 	android:theme
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:14:9-59
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:13:9-59
 activity#com.pratyaksh_ai.admin.AdminMainActivity
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:16:9-23:20
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:15:9-22:20
 	android:exported
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:18:13-36
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:17:13-36
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:17:13-46
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:16:13-46
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:13-22:29
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:18:13-21:29
 action#android.intent.action.MAIN
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:17-69
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:17-69
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:25-66
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:21:17-77
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:17-77
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:21:27-74
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:27-74
 service#com.pratyaksh_ai.admin.AdminNotificationService
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:25:9-31:19
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:24:9-30:19
 	android:exported
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:27:13-37
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:26:13-37
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:26:13-53
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:25:13-53
 intent-filter#action:name:com.google.firebase.MESSAGING_EVENT
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:13-30:29
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:27:13-29:29
 action#com.google.firebase.MESSAGING_EVENT
-ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:17-78
+ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:17-78
 	android:name
-		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:25-75
+		ADDED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:25-75
 uses-sdk
 INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml

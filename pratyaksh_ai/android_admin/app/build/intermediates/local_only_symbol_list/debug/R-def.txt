@@ -7,6 +7,8 @@ color neon_green
 color neon_red
 color purple_500
 color white
+drawable ic_launcher_background
+drawable ic_launcher_foreground
 id btnApprove
 id btnDeny
 id listView
@@ -15,6 +17,8 @@ id txtEmail
 id txtPlan
 layout activity_admin_main
 layout item_payment_request
+mipmap ic_launcher
+mipmap ic_launcher_round
 string app_name
 string gcm_defaultSenderId
 string google_api_key

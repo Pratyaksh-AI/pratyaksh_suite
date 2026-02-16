@@ -9,11 +9,11 @@
 9        android:targetSdkVersion="34" />
 10
 11    <uses-permission android:name="android.permission.INTERNET" />
-11-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:5-67
-11-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:22-64
+11-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:4:5-67
+11-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:4:22-64
 12    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-12-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:6:5-77
-12-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:6:22-74
+12-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:5-77
+12-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:5:22-74
 13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 13-->[com.google.firebase:firebase-auth:22.3.1] /home/codespace/.gradle/caches/transforms-3/9d36d89873b8f410d699e5afed04dfc8/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:26:5-79
 13-->[com.google.firebase:firebase-auth:22.3.1] /home/codespace/.gradle/caches/transforms-3/9d36d89873b8f410d699e5afed04dfc8/transformed/jetified-firebase-auth-22.3.1/AndroidManifest.xml:26:22-76
@@ -51,52 +51,52 @@
 26-->[androidx.core:core:1.12.0] /home/codespace/.gradle/caches/transforms-3/c081857d7f682dc459ad4660924c6441/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
 27
 28    <application
-28-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:8:5-32:19
+28-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:7:5-31:19
 29        android:allowBackup="true"
-29-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:9:9-35
+29-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:8:9-35
 30        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 30-->[androidx.core:core:1.12.0] /home/codespace/.gradle/caches/transforms-3/c081857d7f682dc459ad4660924c6441/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
 31        android:debuggable="true"
 32        android:extractNativeLibs="false"
 33        android:icon="@mipmap/ic_launcher"
-33-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:10:9-43
+33-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:9:9-43
 34        android:label="Pratyaksh Admin"
-34-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:11:9-40
+34-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:10:9-40
 35        android:roundIcon="@mipmap/ic_launcher_round"
-35-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:12:9-54
+35-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:11:9-54
 36        android:supportsRtl="true"
-36-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:13:9-35
+36-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:12:9-35
 37        android:theme="@style/Theme.AppCompat.NoActionBar" >
-37-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:14:9-59
+37-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:13:9-59
 38        <activity
-38-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:16:9-23:20
+38-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:15:9-22:20
 39            android:name="com.pratyaksh_ai.admin.AdminMainActivity"
-39-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:17:13-46
+39-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:16:13-46
 40            android:exported="true" >
-40-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:18:13-36
+40-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:17:13-36
 41            <intent-filter>
-41-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:13-22:29
+41-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:18:13-21:29
 42                <action android:name="android.intent.action.MAIN" />
-42-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:17-69
-42-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:25-66
+42-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:17-69
+42-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:19:25-66
 43
 44                <category android:name="android.intent.category.LAUNCHER" />
-44-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:21:17-77
-44-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:21:27-74
+44-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:17-77
+44-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:20:27-74
 45            </intent-filter>
 46        </activity>
 47
 48        <service
-48-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:25:9-31:19
+48-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:24:9-30:19
 49            android:name="com.pratyaksh_ai.admin.AdminNotificationService"
-49-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:26:13-53
+49-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:25:13-53
 50            android:exported="false" >
-50-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:27:13-37
+50-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:26:13-37
 51            <intent-filter>
-51-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:13-30:29
+51-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:27:13-29:29
 52                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-52-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:17-78
-52-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:25-75
+52-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:17-78
+52-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:25-75
 53            </intent-filter>
 54        </service>
 55
@@ -328,10 +328,10 @@
 175            android:exported="false" >
 175-->[com.google.firebase:firebase-messaging:23.4.1] /home/codespace/.gradle/caches/transforms-3/530b736c3633b650c9be29654e7af03f/transformed/jetified-firebase-messaging-23.4.1/AndroidManifest.xml:49:13-37
 176            <intent-filter android:priority="-500" >
-176-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:13-30:29
+176-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:27:13-29:29
 177                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-177-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:17-78
-177-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:29:25-75
+177-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:17-78
+177-->/workspaces/pratyaksh_suite/pratyaksh_ai/android_admin/app/src/main/AndroidManifest.xml:28:25-75
 178            </intent-filter>
 179        </service>
 180
