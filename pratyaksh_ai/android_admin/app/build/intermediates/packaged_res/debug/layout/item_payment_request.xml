@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/card_bg"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="12dp">
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="40dp"
+            android:background="@color/neon_green"
+            android:layout_marginEnd="12dp"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            
+            <TextView
+                android:id="@+id/txtEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="user@example.com"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="16sp"/>
+                
+            <TextView
+                android:id="@+id/txtPlan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enterprise Plan • ₹19,999"
+                android:textColor="@color/gray"
+                android:textSize="14sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end">
+        
+        <Button
+            android:id="@+id/btnDeny"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="DENY"
+            android:backgroundTint="@color/neon_red"
+            android:textColor="@color/white"
+            android:layout_marginEnd="8dp"/>
+            
+        <Button
+            android:id="@+id/btnApprove"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="APPROVE ACCESS"
+            android:backgroundTint="@color/neon_green"
+            android:textColor="@color/black_bg"
+            android:textStyle="bold"/>
+    </LinearLayout>
+</LinearLayout>

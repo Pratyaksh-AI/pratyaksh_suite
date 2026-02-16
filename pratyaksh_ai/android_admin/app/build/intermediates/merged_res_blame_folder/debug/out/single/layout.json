@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.pratyaksh_ai.admin.app-mergeDebugResources-39:/layout/item_payment_request.xml",
+        "source": "com.pratyaksh_ai.admin.app-main-42:/layout/item_payment_request.xml"
+    },
+    {
+        "merged": "com.pratyaksh_ai.admin.app-mergeDebugResources-39:/layout/activity_admin_main.xml",
+        "source": "com.pratyaksh_ai.admin.app-main-42:/layout/activity_admin_main.xml"
+    }
+]
