@@ -40,7 +40,7 @@ const ComparisonTable = () => {
   );
 };
 
-export const PricingPage = ({ setPage }) => (
+export const PricingPage = ({ setPage, setSelectedPlan }) => (
   <div className={`min-h-screen ${THEME.bg} pt-32 pb-20 px-6`}>
     <div className="max-w-7xl mx-auto">
       <div className="text-center mb-24">
@@ -64,8 +64,15 @@ export const PricingPage = ({ setPage }) => (
                 <li key={i} className="flex items-center gap-3 text-sm font-medium"><Check size={16} className={tier.highlight ? "text-[#4FF978]" : "text-[#111111]"} />{feat}</li>
               ))}
             </ul>
-            {/* UPDATED: Route to 'payment' page instead of 'download' */}
-            <button onClick={() => setPage('payment')} className={`w-full py-4 font-bold text-sm rounded-lg transition-colors ${tier.btnBg} ${tier.btnText} hover:opacity-90`}>Choose Plan</button>
+            <button 
+              onClick={() => {
+                if (setSelectedPlan) setSelectedPlan(tier);
+                setPage('payment');
+              }}
+              className={`w-full py-4 font-bold text-sm rounded-lg transition-colors ${tier.btnBg} ${tier.btnText} hover:opacity-90`}
+            >
+              Choose Plan
+            </button>
           </div>
         ))}
       </div>

@@ -19,19 +19,10 @@ import ApprovalWait from './pages/ApprovalWait';
 
 import { THEME } from './data/constants';
 
-// Firebase Imports
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
-
-// --- CONTEXT & FIREBASE SETUP ---
-// NOTE: In a real deployment, these would be env variables. 
-// For this environment, we assume the config is injected or standard.
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {}; 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'pratyaksh_ai_suite';
+// --- FIREBASE IMPORTS ---
+import { auth, db, appId } from './lib/firebase';
+import { signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export const AuthContext = createContext();
 
@@ -43,6 +34,9 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [access, setAccess] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Commerce State (New)
+  const [selectedPlan, setSelectedPlan] = useState(null);
 
   // 1. Initialize Auth
   useEffect(() => {
@@ -99,14 +93,16 @@ export default function App() {
       case 'home': return <Home setPage={setPage} />;
       
       // Protected Download Flow
-      case 'payment': return <PaymentPage user={user} onPaymentComplete={() => setPage('wait')} />;
+      // Pass selectedPlan to PaymentPage so it knows what to charge
+      case 'payment': return <PaymentPage user={user} plan={selectedPlan} onPaymentComplete={() => setPage('wait')} />;
       case 'wait': return <ApprovalWait user={user} onApproved={() => setPage('download')} />;
       case 'download': return <DownloadScreen setPage={setPage} />; // AccessGuard inside component handles restriction
       
       case 'tools': return <ToolsPage setPage={setPage} />;
       
       // Feature-Rich Custom Layouts
-      case 'pricing': return <PricingPage setPage={setPage} />;
+      // Pass setSelectedPlan to PricingPage so it can update state
+      case 'pricing': return <PricingPage setPage={setPage} setSelectedPlan={setSelectedPlan} />;
       case 'about': return <AboutPage setPage={setPage} />;
       case 'contact': return <ContactPage setPage={setPage} />;
       
@@ -135,7 +131,7 @@ export default function App() {
   };
 
   return (
-    <AuthContext.Provider value={{ user, access, setPage }}>
+    <AuthContext.Provider value={{ user, access, setPage, selectedPlan, setSelectedPlan }}>
       <div className={`font-sans antialiased ${THEME.bg} ${THEME.textMain} selection:bg-[#4FF978] selection:text-black`}>
         <Navbar setPage={setPage} mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
         
