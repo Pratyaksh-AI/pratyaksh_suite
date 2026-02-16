@@ -4,7 +4,7 @@ use serde_json::json;
 
 // CONFIGURATION (Replace these with your real Project ID if different)
 const PROJECT_ID: &str = "pratyakshai-website"; 
-const APP_ID_PATH: &str = "pratyaksh_ai_suite"; // Must match your React AppId
+const APP_ID_PATH: &str = "1:801069212447:web:c8a7f60632744d04ba462a"; // Must match your React AppId
 
 pub struct FirebaseClient {
     client: Client,
