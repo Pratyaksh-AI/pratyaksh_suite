@@ -3,7 +3,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db, appId } from '../lib/firebase';
 import { 
   CreditCard, Lock, Loader2, CheckCircle2, Copy, 
-  Globe, QrCode, Smartphone, Building, ShieldCheck, 
+  Globe, QrCode, Smartphone, ShieldCheck, 
   Wallet, ArrowRightLeft, AlertTriangle, Landmark 
 } from 'lucide-react';
 
@@ -21,8 +21,11 @@ export default function Payment({ user, plan, onPaymentComplete }) {
 
     try {
       const txnId = `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      
+      // RULE 1: Strict Path Compliance
       const paymentRef = doc(db, 'artifacts', appId, 'public', 'data', 'payments', user.uid);
 
+      // DATA STRUCTURE MATCHING RUST ADMIN MODEL STRICTLY
       await setDoc(paymentRef, {
         userId: user.uid,
         userEmail: email,
@@ -30,8 +33,8 @@ export default function Payment({ user, plan, onPaymentComplete }) {
         plan: plan?.name || "Enterprise Suite",
         status: "pending",
         txnId: txnId,
-        createdAt: serverTimestamp(),
-        device: "Web Client"
+        device: "Web Client", // Required by Rust model
+        createdAt: serverTimestamp() // Audit trail (ignored by Rust struct serialization but good for DB)
       });
 
       onPaymentComplete();
@@ -50,6 +53,7 @@ export default function Payment({ user, plan, onPaymentComplete }) {
   };
 
   // Logic to switch images based on selection
+  // Ensure these files exist in public/assets/
   const getQrImage = (app) => {
     switch (app) {
         case "PhonePe": return "https://a-amm.vercel.app/assets/ph.png";
@@ -75,7 +79,7 @@ export default function Payment({ user, plan, onPaymentComplete }) {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-[#111111]">Payment Gateway</h2>
-              <p className="text-sm text-gray-500">Secure bank-grade transfer terminal.</p>
+              <p className="text-sm text-gray-500">Select a secure method to transfer funds.</p>
             </div>
           </div>
 
